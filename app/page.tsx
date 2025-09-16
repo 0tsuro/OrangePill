@@ -21,10 +21,9 @@ export default function Page() {
   const nextBlock = 50;
   const currentBlock = 49;
   const globalPills = 12324;
-  // const myRank = 5; // (si tu l’utilises plus tard)
 
   return (
-    <main className="min-h-dvh w-full bg-black text-white">
+    <main className="h-dvh w-full bg-black text-white overflow-hidden">
       {/* MOBILE GATE */}
       <section className="flex h-dvh w-full items-center justify-center px-6 text-center lg:hidden">
         <div className="space-y-4">
@@ -34,82 +33,86 @@ export default function Page() {
       </section>
 
       {/* DESKTOP UI */}
-      <section className="hidden lg:block">
+      {/* DESKTOP UI */}
+      <section className="hidden lg:flex flex-col h-full">
         <Navbar />
 
         {/* GRID */}
         <section
           className="
-            grid w-screen gap-6 px-0 pb-20
-            grid-cols-[clamp(320px,22vw,420px)_minmax(640px,1fr)_clamp(320px,22vw,420px)]
-            xl:gap-8
-          "
+      grid flex-1 gap-4 px-16
+      grid-cols-[clamp(260px,20vw,360px)_minmax(480px,1fr)_clamp(260px,20vw,360px)]
+      w-full
+    "
         >
           {/* LEFT – Leaderboard */}
-          <aside className="rounded-r-3xl rounded-l-none border border-white/10 bg-zinc-900/40 p-6">
-            <div className="mb-5 flex items-center gap-3">
+          <aside className="rounded-r-2xl border border-white/10 bg-zinc-900/40 p-4 flex flex-col">
+            <div className="mb-3 flex items-center gap-2">
               <IconTrophy />
-              <h2 className="text-2xl font-semibold">Leaderboard</h2>
+              <h2 className="text-lg font-semibold">Leaderboard</h2>
             </div>
-            <ul className="space-y-3">
+            <ul className="space-y-1 flex-1 overflow-hidden">
               {leaders.map((l, i) => (
                 <li
                   key={l.addr}
-                  className="flex items-center justify-between gap-3 rounded-2xl bg-zinc-800/50 px-4 py-3"
+                  className="flex items-center justify-between gap-2 rounded-xl bg-zinc-800/50 px-3 py-1.5"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 text-right text-zinc-400">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-6 text-right text-zinc-400">
                       {i + 1}.
                     </span>
-                    <span className="truncate text-base">{l.addr}</span>
+                    <span className="truncate text-xs">{l.addr}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base font-semibold">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold">
                       {l.score.toLocaleString()}
                     </span>
-                    <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
+                    <span className="h-2 w-2 rounded-full bg-orange-500" />
                   </div>
                 </li>
               ))}
             </ul>
           </aside>
 
-          {/* CENTER – Wallet */}
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-zinc-900/30 p-10">
-            <div className="relative mb-10 h-[460px] w-full max-w-[760px]">
-              <div className="absolute inset-x-0 top-0 h-10 rounded-t-full bg-zinc-800/80" />
-              <div className="absolute inset-0 top-8 rounded-b-[48px] rounded-t-[16px] bg-zinc-800/60 shadow-[inset_0_0_0_1px_rgba(255,255,255,.06)]" />
-              <div className="relative z-10 flex h-full w-full items-center justify-center">
+          {/* CENTER – Cup */}
+          <div className="relative h-full w-full flex items-center justify-center">
+            <div className="relative h-full w-full max-w-[700px]">
+              <Image
+                src="/cup.png"
+                alt="Cup"
+                fill
+                className="object-contain select-none pointer-events-none"
+                priority
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <button
                   onClick={() => setConnected((s) => !s)}
-                  className="rounded-2xl bg-orange-500 px-8 py-4 text-2xl font-extrabold text-black shadow-[0_10px_26px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
+                  className="mb-8 rounded-xl bg-orange-500 px-6 py-3 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
                 >
                   {connected ? "Wallet Connected" : "Connect Wallet"}
                 </button>
+                <div>
+                  <h1>Connect Your Wallet to Claim Pills!</h1>
+                </div>
               </div>
             </div>
-            <p className="text-center text-base text-zinc-300">
-              {connected
-                ? "You can now claim pills."
-                : "Connect Your Wallet to Claim Pills!"}
-            </p>
           </div>
 
           {/* RIGHT – Stats */}
-          <aside className="space-y-5 rounded-l-3xl rounded-r-none">
+          <aside className="space-y-3 rounded-l-2xl border border-white/10 bg-zinc-900/40 p-4 flex flex-col">
             <Card
               title="Next Pill Block:"
               value={nextBlock}
-              footer={<BlocksTrail activeIndex={4} />}
+              footer={<BlocksTrail />}
             />
             <Card
               title="Current Block:"
               value={currentBlock}
               footer={
-                <div className="mt-3 flex items-end gap-1.5">
-                  <div className="h-7 w-7 rounded bg-zinc-700" />
-                  <div className="h-10 w-7 rounded bg-zinc-600" />
-                  <div className="h-12 w-7 rounded bg-zinc-500" />
+                <div className="mt-1 flex items-end gap-1">
+                  <div className="h-4 w-4 rounded bg-zinc-700" />
+                  <div className="h-6 w-4 rounded bg-zinc-600" />
+                  <div className="h-8 w-4 rounded bg-zinc-500" />
                 </div>
               }
             />
@@ -117,10 +120,10 @@ export default function Page() {
               title="Global Pills:"
               value={globalPills.toLocaleString()}
               footer={
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-zinc-800 px-3 py-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
-                  <span className="text-sm text-zinc-300">
-                    Live counter (mock)
+                <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-zinc-800 px-2 py-0.5">
+                  <span className="h-2 w-2 rounded-full bg-orange-500" />
+                  <span className="text-[10px] text-zinc-300">
+                    Live counter
                   </span>
                 </div>
               }
@@ -138,19 +141,20 @@ function Navbar() {
   const circle =
     "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-zinc-700/70 transition";
   const oval =
-    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-zinc-700/70 transition h-12 px-6 text-sm font-semibold uppercase tracking-wide";
+    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-zinc-700/70 transition h-10 px-5 text-sm font-semibold uppercase tracking-wide";
 
   return (
-    <nav className="hidden w-screen items-center justify-between gap-6 px-8 py-6 lg:flex">
-      {/* GAUCHE : logo + boutons ovales */}
+    <nav className="hidden lg:flex w-screen items-center justify-between px-16 py-12">
+      {/* GAUCHE */}
       <div className="flex items-center gap-4">
-        <a href="#" className={`${circle} size-16`} aria-label="Home">
+        <a href="#" className={`${circle} size-14`} aria-label="Home">
           <Image
             src="/orangepill.png"
-            width={50}
-            height={50}
+            width={40}
+            height={40}
             alt="OrangePill Logo"
-            className="h-8 w-8 object-contain"
+            className="object-contain"
+            priority
           />
         </a>
         <a href="#" className={oval}>
@@ -169,43 +173,19 @@ function Navbar() {
         </a>
       </div>
 
-      {/* DROITE : 4 ronds icônes */}
-      <div className="flex items-center gap-3">
-        <a href="#" className={`${circle} size-12`}>
-          <Image
-            src="/discord.svg"
-            width={50}
-            height={50}
-            alt=""
-            className="h-5 w-5 object-contain"
-          />
+      {/* DROITE */}
+      <div className="flex items-center gap-2">
+        <a href="#" className={`${circle} size-10`}>
+          <Image src="/discord.svg" width={20} height={20} alt="Discord" />
         </a>
-        <a href="#" className={`${circle} size-12`}>
-          <Image
-            width={50}
-            height={50}
-            src="/x.svg"
-            alt=""
-            className="h-5 w-5 object-contain"
-          />
+        <a href="#" className={`${circle} size-10`}>
+          <Image src="/x.svg" width={20} height={20} alt="X" />
         </a>
-        <a href="#" className={`${circle} size-12`}>
-          <Image
-            width={50}
-            height={50}
-            src="/bell.svg"
-            alt=""
-            className="h-5 w-5 object-contain"
-          />
+        <a href="#" className={`${circle} size-10`}>
+          <Image src="/bell.svg" width={20} height={20} alt="Bell" />
         </a>
-        <a href="#" className={`${circle} size-12`}>
-          <Image
-            width={50}
-            height={50}
-            src="/wallet.svg"
-            alt=""
-            className="h-5 w-5 object-contain"
-          />
+        <a href="#" className={`${circle} size-10`}>
+          <Image src="/wallet.svg" width={20} height={20} alt="Wallet" />
         </a>
       </div>
     </nav>
@@ -228,26 +208,25 @@ function Card({
   return (
     <div
       className={
-        "border border-white/10 bg-zinc-900/40 p-6 rounded-3xl " + className
+        "border border-white/10 bg-zinc-900/40 p-3 rounded-2xl flex-1 " +
+        className
       }
     >
-      <p className="text-sm text-zinc-400">{title}</p>
-      <p className="mt-1 text-5xl font-extrabold tracking-tight">{value}</p>
+      <p className="text-xs text-zinc-400">{title}</p>
+      <p className="mt-0.5 text-2xl font-extrabold tracking-tight">{value}</p>
       {footer}
     </div>
   );
 }
 
-function BlocksTrail({ activeIndex = 0 }: { activeIndex?: number }) {
+function BlocksTrail() {
   return (
-    <div className="mt-4 flex items-center gap-2">
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-5 w-8 rounded bg-zinc-700" />
-      ))}
-      <div
-        className="h-5 w-8 rounded bg-orange-500"
-        aria-label="next pill block"
-      />
+    <div className="mt-1 flex items-center gap-1.5">
+      <div className="h-3 w-5 rounded bg-zinc-700" />
+      <div className="h-3 w-5 rounded bg-zinc-700" />
+      <div className="h-3 w-5 rounded bg-zinc-700" />
+      <div className="h-3 w-5 rounded bg-zinc-700" />
+      <div className="h-3 w-5 rounded bg-orange-500" />
     </div>
   );
 }
@@ -258,9 +237,8 @@ function IconTrophy() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-6 w-6 text-orange-500"
+      className="h-5 w-5 text-orange-500"
       fill="currentColor"
-      aria-hidden
     >
       <path d="M6 2h12v2h3v3a5 5 0 0 1-5 5h-1a5 5 0 0 1-4 2 5 5 0 0 1-4-2H6A5 5 0 0 1 1 7V4h5V2zm-3 4v1a3 3 0 0 0 3 3h1V6H3zm18 0h-4v4h1a3 3 0 0 0 3-3V6zM10 14h4a4 4 0 0 1-4 3 4 4 0 0 1-4-3h4zM8 18h8v2H8z" />
     </svg>
