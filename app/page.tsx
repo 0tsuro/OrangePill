@@ -21,7 +21,7 @@ export default function Page() {
   const nextBlock = 50;
   const currentBlock = 49;
   const globalPills = 12324;
-  const myRank = 5;
+  // const myRank = 5; // (si tu l’utilises plus tard)
 
   return (
     <main className="min-h-dvh w-full bg-black text-white">
@@ -173,7 +173,7 @@ function Navbar() {
       <div className="flex items-center gap-3">
         <a href="#" className={`${circle} size-12`}>
           <Image
-            src="discord.svg"
+            src="/discord.svg"
             width={50}
             height={50}
             alt=""
@@ -184,7 +184,7 @@ function Navbar() {
           <Image
             width={50}
             height={50}
-            src="x.svg"
+            src="/x.svg"
             alt=""
             className="h-5 w-5 object-contain"
           />
@@ -250,24 +250,6 @@ function BlocksTrail({ activeIndex = 0 }: { activeIndex?: number }) {
       />
     </div>
   );
-}
-
-/* --------------------------------- UTILS ---------------------------------- */
-
-export function ordinal(n: number): string {
-  const v = n % 100;
-  if (v >= 11 && v <= 13) return `${n}th`;
-
-  switch (n % 10) {
-    case 1:
-      return `${n}st`;
-    case 2:
-      return `${n}nd`;
-    case 3:
-      return `${n}rd`;
-    default:
-      return `${n}th`;
-  }
 }
 
 /* --------------------------------- ICONS ---------------------------------- */
