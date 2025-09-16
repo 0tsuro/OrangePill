@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 
 /* ---------------------------------- DATA ---------------------------------- */
 
@@ -144,8 +145,10 @@ function Navbar() {
       {/* GAUCHE : logo + boutons ovales */}
       <div className="flex items-center gap-4">
         <a href="#" className={`${circle} size-16`} aria-label="Home">
-          <img
+          <Image
             src="/orangepill.png"
+            width={50}
+            height={50}
             alt="OrangePill Logo"
             className="h-8 w-8 object-contain"
           />
@@ -169,16 +172,40 @@ function Navbar() {
       {/* DROITE : 4 ronds icônes */}
       <div className="flex items-center gap-3">
         <a href="#" className={`${circle} size-12`}>
-          <img src="discord.svg" alt="" className="h-5 w-5 object-contain" />
+          <Image
+            src="discord.svg"
+            width={50}
+            height={50}
+            alt=""
+            className="h-5 w-5 object-contain"
+          />
         </a>
         <a href="#" className={`${circle} size-12`}>
-          <img src="x.svg" alt="" className="h-5 w-5 object-contain" />
+          <Image
+            width={50}
+            height={50}
+            src="x.svg"
+            alt=""
+            className="h-5 w-5 object-contain"
+          />
         </a>
         <a href="#" className={`${circle} size-12`}>
-          <img src="/bell.svg" alt="" className="h-5 w-5 object-contain" />
+          <Image
+            width={50}
+            height={50}
+            src="/bell.svg"
+            alt=""
+            className="h-5 w-5 object-contain"
+          />
         </a>
         <a href="#" className={`${circle} size-12`}>
-          <img src="/wallet.svg" alt="" className="h-5 w-5 object-contain" />
+          <Image
+            width={50}
+            height={50}
+            src="/wallet.svg"
+            alt=""
+            className="h-5 w-5 object-contain"
+          />
         </a>
       </div>
     </nav>
@@ -227,11 +254,20 @@ function BlocksTrail({ activeIndex = 0 }: { activeIndex?: number }) {
 
 /* --------------------------------- UTILS ---------------------------------- */
 
-function ordinal(n: number) {
-  const s = ["th", "st", "nd", "rd"];
+export function ordinal(n: number): string {
   const v = n % 100;
-  const suf = (s as any)[(v - 20) % 10] || (s as any)[v] || s[0];
-  return `${n}${suf}`;
+  if (v >= 11 && v <= 13) return `${n}th`;
+
+  switch (n % 10) {
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
+  }
 }
 
 /* --------------------------------- ICONS ---------------------------------- */
