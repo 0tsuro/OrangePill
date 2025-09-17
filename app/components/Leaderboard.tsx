@@ -2,7 +2,6 @@
 import * as React from "react";
 import Image from "next/image";
 
-/* ---------- Types ---------- */
 export type Leader = { addr: string; score: number };
 
 type Props = {
@@ -11,19 +10,20 @@ type Props = {
   pillRankSrc?: string;
   activeIndex?: number;
   forceScrollDemo?: boolean;
-  onOpen?: () => void; // NEW: trigger full leaderboard modal
+  /** 👈 NEW: called when CTA is clicked */
+  onOpen?: () => void;
 };
 
-const nf = new Intl.NumberFormat("en-US"); // stable SSR/CSR
+const nf = new Intl.NumberFormat("en-US");
 const formatNumber = (n: number) => nf.format(n);
 
 export default function Leaderboard({
   leaders,
-  pillIconSrc = "/trophy.svg",
+  pillIconSrc = "/pillrank.png",
   pillRankSrc = "/rankpill.png",
   activeIndex,
   forceScrollDemo = true,
-  onOpen, // NEW
+  onOpen,
 }: Props) {
   const [current, setCurrent] = React.useState<number | null>(
     typeof activeIndex === "number" ? activeIndex : null
@@ -57,13 +57,12 @@ export default function Leaderboard({
           alt="Leaderboard Icon"
           width={24}
           height={24}
-          className="object-contain"
           priority
         />
         <h2 className="text-base font-semibold">Leaderboard</h2>
       </div>
 
-      {/* Wrapper */}
+      {/* Scrollable list */}
       <div
         className="scrollwrap max-h-72 overflow-y-scroll pr-5 py-1"
         style={{
@@ -83,7 +82,6 @@ export default function Leaderboard({
                 : i === 2
                 ? "#CD7F32"
                 : "#9CA3AF";
-
             return (
               <li
                 key={`${l.addr}-${i}`}
@@ -96,7 +94,6 @@ export default function Leaderboard({
                     : "hover:shadow-[0_0_5px_#FF6600,inset_0_0_2px_#FF6600]",
                 ].join(" ")}
               >
-                {/* Rank + address */}
                 <div className="flex min-w-0 items-center gap-2">
                   <span
                     className="w-6 text-right text-xs font-extrabold"
@@ -108,8 +105,6 @@ export default function Leaderboard({
                     {shortAddr(l.addr)}
                   </span>
                 </div>
-
-                {/* Score + pill */}
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-semibold text-white/95">
                     {formatNumber(l.score)}
@@ -117,9 +112,8 @@ export default function Leaderboard({
                   <Image
                     src={pillRankSrc}
                     alt="rank pill"
-                    width={28}
-                    height={28}
-                    className="object-contain"
+                    width={18}
+                    height={18}
                   />
                 </div>
               </li>
@@ -128,16 +122,16 @@ export default function Leaderboard({
         </ul>
       </div>
 
-      {/* CTA — uses the existing button to open modal */}
+      {/* CTA -> opens your nice LeaderboardModal */}
       <button
         type="button"
-        onClick={onOpen} // NEW
+        onClick={onOpen}
         className="mt-4 w-full rounded-xl bg-[#FF6600] px-4 py-2 text-sm font-semibold text-white shadow-[0_3px_8px_rgba(255,102,0,.35)] hover:brightness-110 active:scale-[0.98] transition"
       >
         Open Leaderboard
       </button>
 
-      {/* Scrollbar WebKit — ultra-fine + visible */}
+      {/* WebKit scrollbar */}
       <style jsx>{`
         .scrollwrap::-webkit-scrollbar {
           width: 2px;
@@ -154,7 +148,6 @@ export default function Leaderboard({
   );
 }
 
-/* utils */
 function shortAddr(a: string) {
   if (!a) return "";
   const clean = a.replace(/\s+/g, "");

@@ -1,187 +1,177 @@
 "use client";
 import * as React from "react";
 import Image from "next/image";
-
-export type LBItem = { addr: string; score: number };
-
-type Props = {
-  open: boolean;
-  onClose: () => void;
-  items: LBItem[]; // NOTE: backend list (addr, score)
-  activeIndex?: number | null; // NOTE: optional preselected row (0-based)
-  pillIconSrc?: string; // NOTE: right-side score icon
-  headerIconSrc?: string; // NOTE: header left icon
-};
-
-const nf = new Intl.NumberFormat("en-US");
-const fmt = (n: number) => nf.format(n);
+import type { Leader } from "./Leaderboard";
 
 export default function LeaderboardModal({
   open,
   onClose,
-  items,
-  activeIndex = null,
-  pillIconSrc = "/rankpill.png",
-  headerIconSrc = "/pillrank.png",
-}: Props) {
+  leaders,
+  pillIconSrc = "/trophy.svg",
+  pillRankSrc = "/rankpill.png",
+  activeIndex,
+}: {
+  open: boolean;
+  onClose: () => void;
+  leaders: Leader[];
+  pillIconSrc?: string;
+  pillRankSrc?: string;
+  activeIndex?: number;
+}) {
   const [query, setQuery] = React.useState("");
-  const [current, setCurrent] = React.useState<number | null>(activeIndex);
 
-  React.useEffect(() => setCurrent(activeIndex ?? null), [activeIndex]);
+  /* Ensure we have enough rows to scroll (fills with clean dummys). */
+  const normalized: Leader[] = React.useMemo(() => {
+    if ((leaders?.length ?? 0) >= 18) return leaders;
+    const base = leaders ?? [];
+    const need = 18 - base.length;
+    const extras: Leader[] = Array.from({ length: need }).map((_, i) => ({
+      addr: `bc1dummy${(i + 1).toString().padStart(3, "0")}xxxxxxxxxxxxxxxx`,
+      score: 400 - i * 7, // descending a bit
+    }));
+    return [...base, ...extras];
+  }, [leaders]);
 
-  // NOTE: simple client filter by address (backend can replace this)
   const filtered = React.useMemo(() => {
-    if (!query) return items;
-    return items.filter((i) =>
-      i.addr.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [items, query]);
+    const q = query.trim().toLowerCase();
+    if (!q) return normalized;
+    return normalized.filter((l) => l.addr.toLowerCase().includes(q));
+  }, [normalized, query]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50">
-      {/* Overlay */}
+    <div className="fixed inset-0 z-[80]">
+      {/* Backdrop blur */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
         onClick={onClose}
+        aria-hidden
       />
-      {/* Panel */}
-      <div className="absolute left-1/2 top-1/2 w-[min(900px,92vw)] -translate-x-1/2 -translate-y-1/2">
-        <div className="rounded-2xl border border-white/10 bg-[#1B1B1B] shadow-2xl">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 pt-5 pb-3">
-            <div className="flex items-center gap-3">
-              <Image
-                src={headerIconSrc}
-                alt="Leaderboard"
-                width={24}
-                height={24}
-                className="object-contain"
-                priority
-              />
-              <h2 className="text-lg font-semibold">Leaderboard</h2>
-            </div>
 
-            <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search address"
-                  className="h-9 w-[260px] rounded-full bg-[#0F0F0F] pl-10 pr-4 text-sm outline-none ring-1 ring-white/10 focus:ring-white/20 placeholder:text-zinc-500"
-                />
-                <svg
-                  viewBox="0 0 24 24"
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
-                  fill="currentColor"
-                >
-                  <path d="M10 2a8 8 0 015.292 13.708l4 4-1.414 1.414-4-4A8 8 0 1110 2zm0 2a6 6 0 100 12A6 6 0 0010 4z" />
-                </svg>
-              </div>
-              {/* Close */}
-              <button
-                onClick={onClose}
-                className="grid size-7 place-items-center rounded-full bg-[#0F0F0F] text-white/80 ring-1 ring-white/10 hover:bg-white/10"
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
+      {/* Panel — a bit wider & airier */}
+      <div className="absolute left-1/2 top-1/2 z-[81] w-[min(860px,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-white/10 bg-[#1B1B1B] p-6 shadow-[0_40px_120px_rgba(0,0,0,.6)]">
+        {/* Header */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Image src={pillIconSrc} alt="" width={24} height={24} />
+            <h3 className="text-[16px] font-semibold">Leaderboard</h3>
           </div>
 
-          {/* List container */}
-          <div className="px-6 pb-6">
-            <div className="relative rounded-xl bg-[#0F0F0F] ring-1 ring-white/10">
-              {/* Scrollable list */}
-              <div
-                className="scrollwrap max-h-[440px] overflow-y-auto"
-                style={{
-                  WebkitOverflowScrolling: "touch",
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "rgba(255,255,255,0.6) transparent",
-                  scrollbarGutter: "stable",
-                }}
-              >
-                <ul className="divide-y divide-white/5">
-                  {filtered.map((row, i) => {
-                    const isActive = current === i;
-                    const rankColor =
-                      i === 0
-                        ? "#F5C542"
-                        : i === 1
-                        ? "#C0C0C0"
-                        : i === 2
-                        ? "#CD7F32"
-                        : "#9CA3AF";
-
-                    return (
-                      <li
-                        key={`${row.addr}-${i}`}
-                        onClick={() => setCurrent(i)}
-                        className={[
-                          "flex items-center gap-4 px-4 py-3 cursor-pointer",
-                          isActive
-                            ? "ring-1 ring-[#FF6600] shadow-[0_0_8px_#FF660040] rounded-lg mx-2 my-1 bg-[#121212]"
-                            : "hover:bg-white/[0.03]",
-                        ].join(" ")}
-                      >
-                        {/* Rank bubble */}
-                        <div
-                          className="grid h-6 w-6 place-items-center rounded-full text-xs font-bold"
-                          style={{ color: rankColor }}
-                        >
-                          {i + 1}.
-                        </div>
-
-                        {/* Address (truncate) */}
-                        <div className="min-w-0 flex-1 truncate text-sm text-white/90">
-                          {row.addr}
-                        </div>
-
-                        {/* Score + pill */}
-                        <div className="flex items-center gap-2 pl-2">
-                          <span className="text-sm font-semibold">
-                            {fmt(row.score)}
-                          </span>
-                          <Image
-                            src={pillIconSrc}
-                            alt="pill"
-                            width={18}
-                            height={18}
-                            className="object-contain"
-                          />
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-
-              {/* Always-visible slim “fake” scrollbar rail (for mac overlay) */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute right-1.5 top-1.5 bottom-1.5 w-[2px] rounded-full bg-white/40"
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            <div className="relative w-[280px]">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full rounded-[12px] border border-white/10 bg-[#141414] px-9 py-2.5 text-[12.5px] text-white/90 outline-none placeholder:text-white/40"
+                placeholder="Search address…"
               />
+              <svg
+                viewBox="0 0 24 24"
+                className="pointer-events-none absolute left-2.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-white/50"
+                fill="currentColor"
+                aria-hidden
+              >
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.49 21.49 20 15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+              </svg>
             </div>
+
+            <button
+              onClick={onClose}
+              className="grid size-8 place-items-center rounded-full bg-white/10 text-white/80 hover:bg-white/15"
+              aria-label="Close"
+              title="Close"
+            >
+              ×
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Styled-jsx: WebKit scrollbar */}
-      <style jsx>{`
-        :global(.scrollwrap::-webkit-scrollbar) {
-          width: 6px;
-        }
-        :global(.scrollwrap::-webkit-scrollbar-thumb) {
-          background: rgba(255, 255, 255, 0.65);
-          border-radius: 9999px;
-        }
-        :global(.scrollwrap::-webkit-scrollbar-track) {
-          background: transparent;
-        }
-      `}</style>
+        {/* List with always-visible thin scrollbar (when overflow) */}
+        <div
+          className="scrollwrap max-h-[58vh] overflow-y-auto pr-2"
+          style={{
+            WebkitOverflowScrolling: "touch",
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(255,255,255,.65) transparent",
+          }}
+        >
+          <ul className="space-y-2">
+            {filtered.map((l, i) => {
+              const highlight =
+                typeof activeIndex === "number" && i === activeIndex;
+              const rankColor =
+                i === 0
+                  ? "#F5C542"
+                  : i === 1
+                  ? "#C0C0C0"
+                  : i === 2
+                  ? "#CD7F32"
+                  : "#9CA3AF";
+              return (
+                <li
+                  key={`${l.addr}-${i}`}
+                  className={[
+                    "grid grid-cols-[40px_1fr_120px] items-center gap-3 rounded-[12px] border border-white/10 bg-[#141414] px-4 py-2.5",
+                    highlight
+                      ? // stronger orange glow but still soft
+                        "ring-2 ring-[#FF6600B3] shadow-[0_0_10px_#ff660066,0_0_22px_#ff660033]"
+                      : "hover:shadow-[0_0_10px_#ff660033]",
+                  ].join(" ")}
+                >
+                  {/* rank */}
+                  <div className="flex items-center">
+                    <span
+                      className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-md bg-black/40 px-1 text-[11px] font-bold"
+                      style={{ color: rankColor }}
+                    >
+                      {i + 1}
+                    </span>
+                  </div>
+
+                  {/* address */}
+                  <div className="truncate text-[13px] text-white/85">
+                    {shortAddr(l.addr)}
+                  </div>
+
+                  {/* score + pill */}
+                  <div className="flex items-center justify-end gap-2">
+                    <span className="text-[13px] font-semibold text-white/95">
+                      {nf.format(l.score)}
+                    </span>
+                    <Image src={pillRankSrc} alt="" width={16} height={16} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* WebKit scrollbar (thin + visible) */}
+        <style jsx>{`
+          .scrollwrap::-webkit-scrollbar {
+            width: 4px;
+          }
+          .scrollwrap::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 9999px;
+          }
+          .scrollwrap::-webkit-scrollbar-track {
+            background: transparent;
+          }
+        `}</style>
+      </div>
     </div>
   );
+}
+
+/* utils */
+const nf = new Intl.NumberFormat("en-US");
+function shortAddr(a: string) {
+  if (!a) return "";
+  const clean = a.replace(/\s+/g, "");
+  return clean.length <= 18
+    ? clean
+    : `${clean.slice(0, 10)}…${clean.slice(-6)}`;
 }
