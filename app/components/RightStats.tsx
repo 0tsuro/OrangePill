@@ -19,7 +19,7 @@ export default function RightStats({
   pillRankSrc?: string;
 }) {
   return (
-    <aside className="flex flex-col gap-3">
+    <aside className="rounded-2xl bg-[#1B1B1B] p-6 flex flex-col gap-6">
       {/* Bloc 1 */}
       <CardBase glow="orange">
         <p className="text-sm text-zinc-300">Next Pill Block:</p>
