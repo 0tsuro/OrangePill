@@ -1,12 +1,14 @@
 "use client";
 import React from "react";
 import Image from "next/image";
+
 import Leaderboard, { Leader } from "./components/Leaderboard";
 import RankCard from "./components/RankCard";
 import RightStats from "./components/RightStats";
+import Cup from "./components/Cup";
+import SettingsModal from "./components/SettingsModal"; // <= modal settings (blur)
 
-/* ---------------------------------- DATA ---------------------------------- */
-const leaders: Leader[] = [
+const baseLeaders: Leader[] = [
   { addr: "bc1p7w69r4jv...1", score: 1319 },
   { addr: "bc1p7w69r4jv...2", score: 999 },
   { addr: "bc1p7w69r4jv...3", score: 950 },
@@ -14,9 +16,10 @@ const leaders: Leader[] = [
   { addr: "bc1p7w69r4jv...5", score: 784 },
 ];
 
-/* --------------------------------- PAGE ----------------------------------- */
 export default function Page() {
   const [connected, setConnected] = React.useState(false);
+  const [settingsOpen, setSettingsOpen] = React.useState(false); // <-- FIX
+
   const nextBlock = 50;
   const currentBlock = 49;
   const globalPills = 12324;
@@ -35,46 +38,26 @@ export default function Page() {
       <section className="hidden lg:flex flex-1 flex-col">
         <Navbar />
 
-        {/* GRID (compacte, sans scroll) */}
-        <section
-          className="
-            grid flex-1 gap-4 px-14
-            grid-cols-[clamp(220px,18vw,300px)_minmax(380px,1fr)_clamp(220px,18vw,300px)]
-            items-center
-          "
-        >
-          {/* LEFT – Leaderboard + Rank */}
+        <section className="grid flex-1 items-center gap-4 px-14 grid-cols-[clamp(220px,18vw,300px)_minmax(380px,1fr)_clamp(220px,18vw,300px)]">
+          {/* LEFT */}
           <aside className="flex flex-col gap-4 scale-[0.9]">
-            <Leaderboard leaders={leaders} activeIndex={4} />
+            <Leaderboard leaders={baseLeaders} activeIndex={4} />
             <RankCard myRank={5} />
           </aside>
 
-          {/* CENTER – Cup */}
+          {/* CENTER – CUP */}
           <div className="relative flex items-center justify-center scale-[0.9]">
-            <div className="relative w-full max-w-[540px]">
-              <Image
-                src="/cup.png"
-                alt="Cup"
-                width={540}
-                height={540}
-                className="object-contain select-none pointer-events-none mx-auto"
-                priority
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <button
-                  onClick={() => setConnected((s) => !s)}
-                  className="mb-4 rounded-lg bg-[#FF6600] px-6 py-3 text-lg font-bold text-white shadow-[0_4px_12px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
-                >
-                  {connected ? "Wallet Connected" : "Connect Wallet"}
-                </button>
-                <p className="text-sm text-zinc-300">
-                  Connect Your Wallet to Claim Pills!
-                </p>
-              </div>
-            </div>
+            <Cup
+              connected={connected}
+              onToggleConnect={() => setConnected((s) => !s)}
+              onOpenSettings={() => setSettingsOpen(true)} // <-- open modal
+              initialPills={784}
+              cupSrc="/cup.png"
+              pillSrc="/rankpill.png"
+            />
           </div>
 
-          {/* RIGHT – Stats (conteneur #1B1B1B géré dans RightStats) */}
+          {/* RIGHT */}
           <div className="scale-[0.9]">
             <RightStats
               nextBlock={nextBlock}
@@ -84,24 +67,27 @@ export default function Page() {
           </div>
         </section>
 
-        {/* FOOTER */}
         <Footer />
       </section>
+
+      {/* SETTINGS MODAL (blur backdrop inside the component) */}
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
     </main>
   );
 }
 
 /* ------------------------------- NAVBAR ----------------------------------- */
 function Navbar() {
-  // Logo et boutons : mêmes hauteurs visuelles (raccord)
   const circle =
-    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-[#FF6600]/80 hover:text-white transition";
+    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm transition hover:bg-[#FF6600]/80 hover:text-white";
   const oval =
-    "flex items-center justify-center rounded-full bg-zinc-900 border border-white/10 shadow-sm hover:bg-[#FF6600] hover:text-white transition h-16 px-8 text-base font-semibold uppercase tracking-wide";
+    "flex items-center justify-center rounded-full bg-zinc-900 border border-white/10 shadow-sm h-16 px-8 text-base font-semibold uppercase tracking-wide transition hover:bg-[#FF6600] hover:text-white";
 
   return (
     <nav className="hidden lg:flex w-screen items-center justify-between px-20 py-10">
-      {/* GAUCHE */}
       <div className="flex items-center gap-6">
         <a href="#" className={`${circle} size-16`} aria-label="Home">
           <Image
@@ -117,7 +103,7 @@ function Navbar() {
           Dashboard
         </a>
         <a href="#what" className={oval}>
-          What is OrangePill?
+          What is OrangePill
         </a>
         <a
           href="https://ordinals.com/"
@@ -126,17 +112,8 @@ function Navbar() {
           className={oval}
         >
           OrdiScan
-          <Image
-            src="/ordi.svg"
-            width={16}
-            height={16}
-            alt="OrdiScan"
-            className="ml-2"
-          />
         </a>
       </div>
-
-      {/* DROITE */}
       <div className="flex items-center gap-3">
         <a href="#" className={`${circle} size-12`}>
           <Image src="/discord.svg" width={22} height={22} alt="Discord" />

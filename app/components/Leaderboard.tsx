@@ -7,10 +7,11 @@ export type Leader = { addr: string; score: number };
 
 type Props = {
   leaders: Leader[];
-  pillIconSrc?: string; // icône header (ex: /trophy.svg ou /pillrank.png)
-  pillRankSrc?: string; // icône à droite de chaque ligne (ex: /pillrank.png)
-  activeIndex?: number; // index actif initial (0-based)
-  forceScrollDemo?: boolean; // pour forcer des entrées en plus (défaut: true)
+  pillIconSrc?: string;
+  pillRankSrc?: string;
+  activeIndex?: number;
+  forceScrollDemo?: boolean;
+  onOpen?: () => void; // NEW: trigger full leaderboard modal
 };
 
 const nf = new Intl.NumberFormat("en-US"); // stable SSR/CSR
@@ -21,7 +22,8 @@ export default function Leaderboard({
   pillIconSrc = "/trophy.svg",
   pillRankSrc = "/rankpill.png",
   activeIndex,
-  forceScrollDemo = true, // <-- ON par défaut pour te rendre la scrollbar + items
+  forceScrollDemo = true,
+  onOpen, // NEW
 }: Props) {
   const [current, setCurrent] = React.useState<number | null>(
     typeof activeIndex === "number" ? activeIndex : null
@@ -31,7 +33,6 @@ export default function Leaderboard({
     if (typeof activeIndex === "number") setCurrent(activeIndex);
   }, [activeIndex]);
 
-  // On étend la liste si besoin pour garantir le scroll
   const data = React.useMemo(() => {
     if (!forceScrollDemo) return leaders;
     const extras: Leader[] = [
@@ -49,7 +50,7 @@ export default function Leaderboard({
 
   return (
     <div className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-4 pb-5">
-      {/* Header (image fournie) */}
+      {/* Header */}
       <div className="mb-3 flex items-center gap-2.5">
         <Image
           src={pillIconSrc}
@@ -62,12 +63,12 @@ export default function Leaderboard({
         <h2 className="text-base font-semibold">Leaderboard</h2>
       </div>
 
-      {/* Wrapper qui scrolle — toujours visible, ultra fin, avec marge à droite */}
+      {/* Wrapper */}
       <div
         className="scrollwrap max-h-72 overflow-y-scroll pr-5 py-1"
         style={{
           WebkitOverflowScrolling: "touch",
-          scrollbarWidth: "thin", // Firefox
+          scrollbarWidth: "thin",
           scrollbarColor: "rgba(255,255,255,0.6) transparent",
         }}
       >
@@ -95,7 +96,7 @@ export default function Leaderboard({
                     : "hover:shadow-[0_0_5px_#FF6600,inset_0_0_2px_#FF6600]",
                 ].join(" ")}
               >
-                {/* Rang + adresse */}
+                {/* Rank + address */}
                 <div className="flex min-w-0 items-center gap-2">
                   <span
                     className="w-6 text-right text-xs font-extrabold"
@@ -108,7 +109,7 @@ export default function Leaderboard({
                   </span>
                 </div>
 
-                {/* Score + pilule */}
+                {/* Score + pill */}
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-semibold text-white/95">
                     {formatNumber(l.score)}
@@ -127,10 +128,10 @@ export default function Leaderboard({
         </ul>
       </div>
 
-      {/* CTA bas (compact) */}
+      {/* CTA — uses the existing button to open modal */}
       <button
         type="button"
-        onClick={() => alert("Open Leaderboard")}
+        onClick={onOpen} // NEW
         className="mt-4 w-full rounded-xl bg-[#FF6600] px-4 py-2 text-sm font-semibold text-white shadow-[0_3px_8px_rgba(255,102,0,.35)] hover:brightness-110 active:scale-[0.98] transition"
       >
         Open Leaderboard

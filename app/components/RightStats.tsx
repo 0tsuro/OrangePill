@@ -2,14 +2,16 @@
 import React from "react";
 import Image from "next/image";
 
-/* ---------- Composant principal ---------- */
+/* NOTE: Self-contained right-column stats with background wrapper.
+ * TODO: Replace numbers via GET /api/stats (props come from page.tsx).
+ */
 export default function RightStats({
   nextBlock = 50,
   currentBlock = 49,
   globalPills = 12324,
-  barImageSrc = "/bar.png", // ← conserve ton width/height + h-6
-  currentBlockImageSrc = "/block.png", // ← conserve 80x80
-  pillRankSrc = "/rankpill.png", // ← conserve 256 (HD) + w-16 h-16
+  barImageSrc = "/bar.png", // exported bar image for block 1
+  currentBlockImageSrc = "/block.png", // decorative image for block 2
+  pillRankSrc = "/rankpill.png", // pill icon for block 3 (use HD export)
 }: {
   nextBlock?: number;
   currentBlock?: number;
@@ -19,8 +21,8 @@ export default function RightStats({
   pillRankSrc?: string;
 }) {
   return (
-    <aside className="rounded-2xl bg-[#1B1B1B] p-6 flex flex-col gap-6">
-      {/* Bloc 1 */}
+    <aside className="rounded-2xl bg-[#1B1B1B] p-4 flex flex-col gap-4">
+      {/* Block 1: Next Pill Block + bar image */}
       <CardBase glow="orange">
         <p className="text-sm text-zinc-300">Next Pill Block:</p>
         <p className="mt-2 text-3xl font-extrabold tracking-tight">
@@ -31,36 +33,32 @@ export default function RightStats({
         </div>
       </CardBase>
 
-      {/* Bloc 2 */}
+      {/* Block 2: Current Block + bottom-right image */}
       <CardBase glow="orange">
         <p className="text-sm text-zinc-300">Current Block:</p>
         <p className="mt-2 text-3xl font-extrabold tracking-tight">
           {formatNumber(currentBlock)}
         </p>
-
-        {/* 👇 garde ton 80x80 exact pour rester net */}
         <Image
           src={currentBlockImageSrc}
           alt="current block icon"
-          width={80}
+          width={80} /* NOTE: keep asset HD in /public for sharp result */
           height={80}
           className="absolute bottom-3 right-3 object-contain opacity-85 pointer-events-none select-none"
         />
       </CardBase>
 
-      {/* Bloc 3 */}
+      {/* Block 3: Global Pills + pill icon */}
       <CardBase glow="white">
         <p className="text-sm text-zinc-300">Global Pills:</p>
         <div className="mt-2 flex items-center justify-center gap-3">
           <p className="text-3xl font-extrabold tracking-tight">
             {formatNumber(globalPills)}
           </p>
-
-          {/* 👇 asset HD 256x256 downscalé en w-16 h-16 pour un rendu crisp */}
           <Image
             src={pillRankSrc}
             alt="pill rank"
-            width={256}
+            width={256} /* NOTE: HD source (e.g. 128–256px) */
             height={256}
             className="w-16 h-16 object-contain pointer-events-none select-none"
           />
@@ -70,8 +68,7 @@ export default function RightStats({
   );
 }
 
-/* ---------- Building blocks ---------- */
-
+/* NOTE: Uniform card base (same height + soft glow) */
 function CardBase({
   children,
   glow = "orange",
@@ -79,58 +76,43 @@ function CardBase({
   children: React.ReactNode;
   glow?: "orange" | "white";
 }) {
-  const isOrange = glow === "orange";
-  const borderClass = isOrange ? "border-[#FF6600]" : "border-white/80";
-  const ringClass = isOrange
-    ? "ring-1 ring-[#FF6600]/60"
-    : "ring-1 ring-white/60";
-  // Glow doux mais visible (ajusté pour ne pas être trop agressif)
-  const glowLayerClass = isOrange
-    ? "shadow-[0_0_10px_#FF660066,0_0_24px_#FF660033,0_0_48px_#FF66001a]"
-    : "shadow-[0_0_10px_#FFFFFF66,0_0_24px_#FFFFFF33,0_0_48px_#FFFFFF1a]";
+  const glowClass =
+    glow === "orange"
+      ? "border-[#FF6600] shadow-[0_0_6px_#FF660040,0_0_12px_#FF660020]"
+      : "border-white/80 shadow-[0_0_6px_#FFFFFF40,0_0_12px_#FFFFFF20]";
 
   return (
-    <div className="relative h-44">
-      {" "}
-      {/* même hauteur pour tous */}
-      {/* couche glow sous la carte (n’altère pas les images) */}
-      <span
-        aria-hidden
-        className={`pointer-events-none absolute inset-0 rounded-xl ${glowLayerClass}`}
-      />
-      {/* carte */}
-      <div
-        className={[
-          "relative z-10 h-full rounded-xl bg-[#0c0c0c] border p-6",
-          "flex flex-col items-center justify-center text-center",
-          borderClass,
-          ringClass,
-        ].join(" ")}
-      >
-        {children}
-      </div>
+    <div
+      className={[
+        "relative h-44", // NOTE: same height for all 3 cards
+        "rounded-xl bg-[#0c0c0c] border p-6",
+        "flex flex-col items-center justify-center text-center",
+        glowClass,
+      ].join(" ")}
+    >
+      {children}
     </div>
   );
 }
 
-/* ---------- Progress bar (garde tes dimensions pour éviter le flou) ---------- */
+/* NOTE: Bar image. Use large source to avoid blur; scaled to fit card width. */
 function ProgressImageBar({ imageSrc }: { imageSrc: string }) {
   return (
     <div className="relative w-full select-none">
       <Image
         src={imageSrc}
         alt="progress bar"
-        width={2400} // grande source (netteté)
+        width={2400} /* large source = crisp downscale */
         height={200}
-        className="w-full h-6 object-cover pointer-events-none" // 👈 h-6 comme ton code
+        className="w-full h-6 object-cover pointer-events-none"
         priority
       />
     </div>
   );
 }
 
-/* ---------- utils ---------- */
-const nf = new Intl.NumberFormat("en-US"); // stable SSR/CSR
+/* NOTE: Stable number formatting for SSR/CSR parity */
+const nf = new Intl.NumberFormat("en-US");
 function formatNumber(n: number) {
   return nf.format(n);
 }
