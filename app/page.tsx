@@ -117,7 +117,7 @@ function Navbar() {
           Dashboard
         </a>
         <a href="#what" className={oval}>
-          What is OrangePill
+          What is OrangePill?
         </a>
         <a
           href="https://ordinals.com/"
@@ -126,6 +126,13 @@ function Navbar() {
           className={oval}
         >
           OrdiScan
+          <Image
+            src="/ordi.svg"
+            width={16}
+            height={16}
+            alt="OrdiScan"
+            className="ml-2"
+          />
         </a>
       </div>
 
