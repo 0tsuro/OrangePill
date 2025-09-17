@@ -3,6 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Leaderboard, { Leader } from "./components/Leaderboard";
 import RankCard from "./components/RankCard";
+import RightStats from "./components/RightStats";
 
 /* ---------------------------------- DATA ---------------------------------- */
 const leaders: Leader[] = [
@@ -73,33 +74,9 @@ export default function Page() {
           </div>
 
           {/* RIGHT – Stats */}
-          <aside className="space-y-2 rounded-lg border border-white/10 bg-zinc-900/40 p-3 flex flex-col">
-            <Card
-              title="Next Pill Block:"
-              value={nextBlock}
-              footer={<BlocksTrail />}
-            />
-            <Card
-              title="Current Block:"
-              value={currentBlock}
-              footer={
-                <div className="mt-1 flex items-end gap-1">
-                  <div className="h-3 w-3 rounded bg-zinc-700" />
-                  <div className="h-4 w-3 rounded bg-zinc-600" />
-                  <div className="h-5 w-3 rounded bg-zinc-500" />
-                </div>
-              }
-            />
-            <Card
-              title="Global Pills:"
-              value={globalPills.toLocaleString()}
-              footer={
-                <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2 py-0.5">
-                  <span className="h-2 w-2 rounded-full bg-[#FF6600]" />
-                  <span className="text-[9px] text-zinc-300">Live counter</span>
-                </div>
-              }
-            />
+          {/* RIGHT – Stats */}
+          <aside className="space-y-2 p-3 flex flex-col">
+            <RightStats barImageSrc="/bar.png" />
           </aside>
         </section>
       </section>
