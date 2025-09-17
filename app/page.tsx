@@ -1,10 +1,10 @@
 "use client";
 import React from "react";
 import Image from "next/image";
+import Leaderboard, { Leader } from "./components/Leaderboard";
+import RankCard from "./components/RankCard";
 
 /* ---------------------------------- DATA ---------------------------------- */
-
-type Leader = { addr: string; score: number };
 
 const leaders: Leader[] = [
   { addr: "bc1p7w69r4jv...1", score: 1319 },
@@ -33,45 +33,21 @@ export default function Page() {
       </section>
 
       {/* DESKTOP UI */}
-      {/* DESKTOP UI */}
       <section className="hidden lg:flex flex-col h-full">
         <Navbar />
 
         {/* GRID */}
         <section
           className="
-      grid flex-1 gap-4 px-16
-      grid-cols-[clamp(260px,20vw,360px)_minmax(480px,1fr)_clamp(260px,20vw,360px)]
-      w-full
-    "
+            grid flex-1 gap-4 px-16
+            grid-cols-[clamp(260px,20vw,360px)_minmax(480px,1fr)_clamp(260px,20vw,360px)]
+            w-full
+          "
         >
-          {/* LEFT – Leaderboard */}
-          <aside className="rounded-r-2xl border border-white/10 bg-zinc-900/40 p-4 flex flex-col">
-            <div className="mb-3 flex items-center gap-2">
-              <IconTrophy />
-              <h2 className="text-lg font-semibold">Leaderboard</h2>
-            </div>
-            <ul className="space-y-1 flex-1 overflow-hidden">
-              {leaders.map((l, i) => (
-                <li
-                  key={l.addr}
-                  className="flex items-center justify-between gap-2 rounded-xl bg-zinc-800/50 px-3 py-1.5"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-6 text-right text-zinc-400">
-                      {i + 1}.
-                    </span>
-                    <span className="truncate text-xs">{l.addr}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold">
-                      {l.score.toLocaleString()}
-                    </span>
-                    <span className="h-2 w-2 rounded-full bg-orange-500" />
-                  </div>
-                </li>
-              ))}
-            </ul>
+          {/* LEFT – Leaderboard + Rank */}
+          <aside className="flex flex-col gap-4">
+            <Leaderboard leaders={leaders} activeIndex={4} />
+            <RankCard myRank={5} />
           </aside>
 
           {/* CENTER – Cup */}
@@ -87,7 +63,7 @@ export default function Page() {
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <button
                   onClick={() => setConnected((s) => !s)}
-                  className="mb-8 rounded-xl bg-orange-500 px-6 py-3 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
+                  className="mb-8 rounded-xl bg-[#FF6600] px-6 py-3 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
                 >
                   {connected ? "Wallet Connected" : "Connect Wallet"}
                 </button>
@@ -121,7 +97,7 @@ export default function Page() {
               value={globalPills.toLocaleString()}
               footer={
                 <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-zinc-800 px-2 py-0.5">
-                  <span className="h-2 w-2 rounded-full bg-orange-500" />
+                  <span className="h-2 w-2 rounded-full bg-[#FF6600]" />
                   <span className="text-[10px] text-zinc-300">
                     Live counter
                   </span>
@@ -139,9 +115,9 @@ export default function Page() {
 
 function Navbar() {
   const circle =
-    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-zinc-700/70 transition";
+    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-[#FF6600]/80 hover:text-white transition";
   const oval =
-    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-zinc-700/70 transition h-10 px-5 text-sm font-semibold uppercase tracking-wide";
+    "flex items-center justify-center rounded-full bg-zinc-900 border border-white/10 shadow-sm hover:bg-[#FF6600] hover:text-white transition h-10 px-5 text-sm font-semibold uppercase tracking-wide";
 
   return (
     <nav className="hidden lg:flex w-screen items-center justify-between px-16 py-12">
@@ -157,7 +133,7 @@ function Navbar() {
             priority
           />
         </a>
-        <a href="#" className={oval}>
+        <a href="#" className={`${oval} bg-[#FF6600] text-white`}>
           Dashboard
         </a>
         <a href="#what" className={oval}>
@@ -226,21 +202,7 @@ function BlocksTrail() {
       <div className="h-3 w-5 rounded bg-zinc-700" />
       <div className="h-3 w-5 rounded bg-zinc-700" />
       <div className="h-3 w-5 rounded bg-zinc-700" />
-      <div className="h-3 w-5 rounded bg-orange-500" />
+      <div className="h-3 w-5 rounded bg-[#FF6600]" />
     </div>
-  );
-}
-
-/* --------------------------------- ICONS ---------------------------------- */
-
-function IconTrophy() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5 text-orange-500"
-      fill="currentColor"
-    >
-      <path d="M6 2h12v2h3v3a5 5 0 0 1-5 5h-1a5 5 0 0 1-4 2 5 5 0 0 1-4-2H6A5 5 0 0 1 1 7V4h5V2zm-3 4v1a3 3 0 0 0 3 3h1V6H3zm18 0h-4v4h1a3 3 0 0 0 3-3V6zM10 14h4a4 4 0 0 1-4 3 4 4 0 0 1-4-3h4zM8 18h8v2H8z" />
-    </svg>
   );
 }
