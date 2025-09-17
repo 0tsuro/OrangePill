@@ -116,8 +116,8 @@ export default function Leaderboard({
                   <Image
                     src={pillRankSrc}
                     alt="rank pill"
-                    width={18}
-                    height={18}
+                    width={28}
+                    height={28}
                     className="object-contain"
                   />
                 </div>
