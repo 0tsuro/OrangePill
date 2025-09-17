@@ -19,7 +19,7 @@ const formatNumber = (n: number) => nf.format(n);
 export default function Leaderboard({
   leaders,
   pillIconSrc = "/trophy.svg",
-  pillRankSrc = "/pillrank.png",
+  pillRankSrc = "/rankpill.png",
   activeIndex,
   forceScrollDemo = true, // <-- ON par défaut pour te rendre la scrollbar + items
 }: Props) {
