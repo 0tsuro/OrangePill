@@ -90,7 +90,7 @@ function CardBase({
     : "shadow-[0_0_10px_#FFFFFF66,0_0_24px_#FFFFFF33,0_0_48px_#FFFFFF1a]";
 
   return (
-    <div className="relative h-48">
+    <div className="relative h-44">
       {" "}
       {/* même hauteur pour tous */}
       {/* couche glow sous la carte (n’altère pas les images) */}

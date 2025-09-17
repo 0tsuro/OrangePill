@@ -32,14 +32,14 @@ export default function Page() {
       </section>
 
       {/* DESKTOP UI */}
-      <section className="hidden lg:flex flex-col flex-1">
+      <section className="hidden lg:flex flex-1 flex-col">
         <Navbar />
 
-        {/* GRID */}
+        {/* GRID (compacte, sans scroll) */}
         <section
           className="
             grid flex-1 gap-4 px-14
-            grid-cols-[clamp(220px,18vw,300px)_minmax(400px,1fr)_clamp(220px,18vw,300px)]
+            grid-cols-[clamp(220px,18vw,300px)_minmax(380px,1fr)_clamp(220px,18vw,300px)]
             items-center
           "
         >
@@ -63,7 +63,7 @@ export default function Page() {
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <button
                   onClick={() => setConnected((s) => !s)}
-                  className="mb-4 rounded-lg bg-[#FF6600] px-5 py-2.5 text-base font-bold text-white shadow-[0_4px_12px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
+                  className="mb-4 rounded-lg bg-[#FF6600] px-6 py-3 text-lg font-bold text-white shadow-[0_4px_12px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
                 >
                   {connected ? "Wallet Connected" : "Connect Wallet"}
                 </button>
@@ -74,7 +74,7 @@ export default function Page() {
             </div>
           </div>
 
-          {/* RIGHT – Stats */}
+          {/* RIGHT – Stats (conteneur #1B1B1B géré dans RightStats) */}
           <div className="scale-[0.9]">
             <RightStats
               nextBlock={nextBlock}
@@ -93,6 +93,7 @@ export default function Page() {
 
 /* ------------------------------- NAVBAR ----------------------------------- */
 function Navbar() {
+  // Logo et boutons : mêmes hauteurs visuelles (raccord)
   const circle =
     "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-[#FF6600]/80 hover:text-white transition";
   const oval =
@@ -116,7 +117,7 @@ function Navbar() {
           Dashboard
         </a>
         <a href="#what" className={oval}>
-          What is OrangePill?
+          What is OrangePill
         </a>
         <a
           href="https://ordinals.com/"
@@ -125,13 +126,6 @@ function Navbar() {
           className={oval}
         >
           OrdiScan
-          <Image
-            className="ml-2"
-            src={"/ordi.svg"}
-            width={22}
-            height={22}
-            alt="Discord"
-          />
         </a>
       </div>
 
