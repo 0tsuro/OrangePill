@@ -2,13 +2,14 @@
 import React from "react";
 import Image from "next/image";
 
+/* ---------- Composant principal ---------- */
 export default function RightStats({
   nextBlock = 50,
   currentBlock = 49,
   globalPills = 12324,
-  barImageSrc = "/bar.png",
-  currentBlockImageSrc = "/block.png",
-  pillRankSrc = "/pillrank.png",
+  barImageSrc = "/bar.png", // ← conserve ton width/height + h-6
+  currentBlockImageSrc = "/block.png", // ← conserve 80x80
+  pillRankSrc = "/rankpill.png", // ← conserve 256 (HD) + w-16 h-16
 }: {
   nextBlock?: number;
   currentBlock?: number;
@@ -18,123 +19,118 @@ export default function RightStats({
   pillRankSrc?: string;
 }) {
   return (
-    <aside className="flex flex-col gap-3 rounded-lg border border-white/10 bg-zinc-900/40 p-3">
+    <aside className="flex flex-col gap-3">
       {/* Bloc 1 */}
-      <StatCardGlow
-        title="Next Pill Block:"
-        value={formatNumber(nextBlock)}
-        glow="orange"
-        footer={<ProgressImageBar imageSrc={barImageSrc} />}
-      />
+      <CardBase glow="orange">
+        <p className="text-sm text-zinc-300">Next Pill Block:</p>
+        <p className="mt-2 text-3xl font-extrabold tracking-tight">
+          {formatNumber(nextBlock)}
+        </p>
+        <div className="mt-4 w-full">
+          <ProgressImageBar imageSrc={barImageSrc} />
+        </div>
+      </CardBase>
 
       {/* Bloc 2 */}
-      <StatCardLarge
-        title="Current Block:"
-        value={formatNumber(currentBlock)}
-        imageSrc={currentBlockImageSrc}
-      />
+      <CardBase glow="orange">
+        <p className="text-sm text-zinc-300">Current Block:</p>
+        <p className="mt-2 text-3xl font-extrabold tracking-tight">
+          {formatNumber(currentBlock)}
+        </p>
+
+        {/* 👇 garde ton 80x80 exact pour rester net */}
+        <Image
+          src={currentBlockImageSrc}
+          alt="current block icon"
+          width={80}
+          height={80}
+          className="absolute bottom-3 right-3 object-contain opacity-85 pointer-events-none select-none"
+        />
+      </CardBase>
 
       {/* Bloc 3 */}
-      <StatCardGlow
-        title="Global Pills:"
-        value={
-          <span className="inline-flex items-center gap-2">
+      <CardBase glow="white">
+        <p className="text-sm text-zinc-300">Global Pills:</p>
+        <div className="mt-2 flex items-center justify-center gap-3">
+          <p className="text-3xl font-extrabold tracking-tight">
             {formatNumber(globalPills)}
-            <Image
-              src={pillRankSrc}
-              alt="pill rank"
-              width={20}
-              height={20}
-              className="object-contain select-none pointer-events-none"
-            />
-          </span>
-        }
-        glow="white"
-      />
+          </p>
+
+          {/* 👇 asset HD 256x256 downscalé en w-16 h-16 pour un rendu crisp */}
+          <Image
+            src={pillRankSrc}
+            alt="pill rank"
+            width={256}
+            height={256}
+            className="w-16 h-16 object-contain pointer-events-none select-none"
+          />
+        </div>
+      </CardBase>
     </aside>
   );
 }
 
-/* ---------- Cartes ---------- */
+/* ---------- Building blocks ---------- */
 
-function StatCardGlow({
-  title,
-  value,
-  footer,
+function CardBase({
+  children,
   glow = "orange",
 }: {
-  title: string;
-  value: number | string | React.ReactNode;
-  footer?: React.ReactNode;
+  children: React.ReactNode;
   glow?: "orange" | "white";
 }) {
-  const ring =
-    glow === "orange"
-      ? "shadow-[0_0_16px_#ff660055] ring-1 ring-[#FF6600]"
-      : "shadow-[0_0_16px_#ffffff55] ring-1 ring-white";
+  const isOrange = glow === "orange";
+  const borderClass = isOrange ? "border-[#FF6600]" : "border-white/80";
+  const ringClass = isOrange
+    ? "ring-1 ring-[#FF6600]/60"
+    : "ring-1 ring-white/60";
+  // Glow doux mais visible (ajusté pour ne pas être trop agressif)
+  const glowLayerClass = isOrange
+    ? "shadow-[0_0_10px_#FF660066,0_0_24px_#FF660033,0_0_48px_#FF66001a]"
+    : "shadow-[0_0_10px_#FFFFFF66,0_0_24px_#FFFFFF33,0_0_48px_#FFFFFF1a]";
 
   return (
-    <div className="rounded-xl bg-[#111] p-1 min-h-[160px]">
-      <div
-        className={
-          "h-full rounded-xl bg-[#0c0c0c] border p-6 flex flex-col items-center justify-center text-center " +
-          (glow === "orange" ? "border-[#FF6600]" : "border-white/80") +
-          " " +
-          ring
-        }
-      >
-        <p className="text-xs text-zinc-200">{title}</p>
-        <p className="mt-2 text-2xl font-extrabold tracking-tight">{value}</p>
-        {footer && <div className="mt-3 w-full">{footer}</div>}
-      </div>
-    </div>
-  );
-}
-
-function StatCardLarge({
-  title,
-  value,
-  imageSrc,
-}: {
-  title: string;
-  value: number | string;
-  imageSrc: string;
-}) {
-  return (
-    <div className="relative rounded-xl bg-[#0c0c0c] border border-white/10 min-h-[160px] flex flex-col justify-center items-center text-center p-6 overflow-hidden shadow-[0_0_16px_#ff660055] ring-1 ring-[#FF6600]">
-      <div>
-        <p className="text-sm text-zinc-300">{title}</p>
-        <p className="mt-2 text-3xl font-extrabold text-white tracking-tight">
-          {value}
-        </p>
-      </div>
-      <Image
-        src={imageSrc}
-        alt="current block icon"
-        width={64}
-        height={64}
-        className="absolute bottom-3 right-3 object-contain opacity-80 pointer-events-none select-none"
+    <div className="relative h-48">
+      {" "}
+      {/* même hauteur pour tous */}
+      {/* couche glow sous la carte (n’altère pas les images) */}
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 rounded-xl ${glowLayerClass}`}
       />
+      {/* carte */}
+      <div
+        className={[
+          "relative z-10 h-full rounded-xl bg-[#0c0c0c] border p-6",
+          "flex flex-col items-center justify-center text-center",
+          borderClass,
+          ringClass,
+        ].join(" ")}
+      >
+        {children}
+      </div>
     </div>
   );
 }
 
+/* ---------- Progress bar (garde tes dimensions pour éviter le flou) ---------- */
 function ProgressImageBar({ imageSrc }: { imageSrc: string }) {
   return (
     <div className="relative w-full select-none">
       <Image
         src={imageSrc}
         alt="progress bar"
-        width={300}
-        height={24}
-        className="w-full h-5 object-cover rounded-md pointer-events-none"
+        width={2400} // grande source (netteté)
+        height={200}
+        className="w-full h-6 object-cover pointer-events-none" // 👈 h-6 comme ton code
+        priority
       />
     </div>
   );
 }
 
 /* ---------- utils ---------- */
-const nf = new Intl.NumberFormat("en-US");
+const nf = new Intl.NumberFormat("en-US"); // stable SSR/CSR
 function formatNumber(n: number) {
   return nf.format(n);
 }

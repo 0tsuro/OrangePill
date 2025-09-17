@@ -22,51 +22,52 @@ export default function Page() {
   const globalPills = 12324;
 
   return (
-    <main className="h-dvh w-full bg-black text-white overflow-hidden text-sm">
+    <main className="h-dvh w-full bg-black text-white overflow-hidden flex flex-col">
       {/* MOBILE GATE */}
       <section className="flex h-dvh w-full items-center justify-center px-6 text-center lg:hidden">
-        <div className="space-y-3">
-          <h1 className="text-lg font-bold">Desktop Only</h1>
+        <div className="space-y-4">
+          <h1 className="text-2xl font-bold">Desktop Only</h1>
           <p className="text-zinc-300">pls use desktop</p>
         </div>
       </section>
 
       {/* DESKTOP UI */}
-      <section className="hidden lg:flex flex-col h-full">
+      <section className="hidden lg:flex flex-col flex-1">
         <Navbar />
 
         {/* GRID */}
         <section
           className="
-            grid flex-1 gap-3 px-12
-            grid-cols-[clamp(200px,18vw,280px)_minmax(380px,1fr)_clamp(200px,18vw,280px)]
-            w-full
+            grid flex-1 gap-4 px-14
+            grid-cols-[clamp(240px,19vw,320px)_minmax(420px,1fr)_clamp(240px,19vw,320px)]
+            items-center
           "
         >
           {/* LEFT – Leaderboard + Rank */}
-          <aside className="flex flex-col gap-3">
+          <aside className="flex flex-col gap-4 scale-[0.95]">
             <Leaderboard leaders={leaders} activeIndex={4} />
             <RankCard myRank={5} />
           </aside>
 
           {/* CENTER – Cup */}
-          <div className="relative h-full w-full flex items-center justify-center">
-            <div className="relative h-full w-full max-w-[520px]">
+          <div className="relative flex items-center justify-center scale-[0.95]">
+            <div className="relative w-full max-w-[600px]">
               <Image
                 src="/cup.png"
                 alt="Cup"
-                fill
-                className="object-contain select-none pointer-events-none"
+                width={600}
+                height={600}
+                className="object-contain select-none pointer-events-none mx-auto"
                 priority
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <button
                   onClick={() => setConnected((s) => !s)}
-                  className="mb-6 rounded-xl bg-[#FF6600] px-8 py-4 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
+                  className="mb-5 rounded-lg bg-[#FF6600] px-6 py-3 text-lg font-bold text-white shadow-[0_4px_12px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
                 >
                   {connected ? "Wallet Connected" : "Connect Wallet"}
                 </button>
-                <p className="text-base text-zinc-200 font-medium">
+                <p className="text-base text-zinc-300">
                   Connect Your Wallet to Claim Pills!
                 </p>
               </div>
@@ -74,11 +75,17 @@ export default function Page() {
           </div>
 
           {/* RIGHT – Stats */}
-          {/* RIGHT – Stats */}
-          <aside className="space-y-2 p-3 flex flex-col">
-            <RightStats barImageSrc="/bar.png" />
-          </aside>
+          <div className="scale-[0.95]">
+            <RightStats
+              nextBlock={nextBlock}
+              currentBlock={currentBlock}
+              globalPills={globalPills}
+            />
+          </div>
         </section>
+
+        {/* FOOTER */}
+        <Footer />
       </section>
     </main>
   );
@@ -89,17 +96,17 @@ function Navbar() {
   const circle =
     "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-[#FF6600]/80 hover:text-white transition";
   const oval =
-    "flex items-center justify-center rounded-full bg-zinc-900 border border-white/10 shadow-sm hover:bg-[#FF6600] hover:text-white transition h-8 px-4 text-xs font-semibold uppercase tracking-wide";
+    "flex items-center justify-center rounded-full bg-zinc-900 border border-white/10 shadow-sm hover:bg-[#FF6600] hover:text-white transition h-14 px-10 text-lg font-semibold uppercase tracking-wide";
 
   return (
-    <nav className="hidden lg:flex w-screen items-center justify-between px-12 py-8">
+    <nav className="hidden lg:flex w-screen items-center justify-between px-20 py-12">
       {/* GAUCHE */}
-      <div className="flex items-center gap-3">
-        <a href="#" className={`${circle} size-10`} aria-label="Home">
+      <div className="flex items-center gap-8">
+        <a href="#" className={`${circle} size-18`} aria-label="Home">
           <Image
             src="/orangepill.png"
-            width={28}
-            height={28}
+            width={56}
+            height={56}
             alt="OrangePill Logo"
             className="object-contain"
             priority
@@ -122,58 +129,29 @@ function Navbar() {
       </div>
 
       {/* DROITE */}
-      <div className="flex items-center gap-1.5">
-        <a href="#" className={`${circle} size-8`}>
-          <Image src="/discord.svg" width={14} height={14} alt="Discord" />
+      <div className="flex items-center gap-4">
+        <a href="#" className={`${circle} size-12`}>
+          <Image src="/discord.svg" width={24} height={24} alt="Discord" />
         </a>
-        <a href="#" className={`${circle} size-8`}>
-          <Image src="/x.svg" width={14} height={14} alt="X" />
+        <a href="#" className={`${circle} size-12`}>
+          <Image src="/x.svg" width={24} height={24} alt="X" />
         </a>
-        <a href="#" className={`${circle} size-8`}>
-          <Image src="/bell.svg" width={14} height={14} alt="Bell" />
+        <a href="#" className={`${circle} size-12`}>
+          <Image src="/bell.svg" width={24} height={24} alt="Bell" />
         </a>
-        <a href="#" className={`${circle} size-8`}>
-          <Image src="/wallet.svg" width={14} height={14} alt="Wallet" />
+        <a href="#" className={`${circle} size-12`}>
+          <Image src="/wallet.svg" width={24} height={24} alt="Wallet" />
         </a>
       </div>
     </nav>
   );
 }
 
-/* ------------------------------- COMPONENTS -------------------------------- */
-function Card({
-  title,
-  value,
-  footer,
-  className = "",
-}: {
-  title: string;
-  value: number | string;
-  footer?: React.ReactNode;
-  className?: string;
-}) {
+/* ------------------------------- FOOTER ----------------------------------- */
+function Footer() {
   return (
-    <div
-      className={
-        "border border-white/10 bg-zinc-900/40 p-2 rounded-lg flex-1 " +
-        className
-      }
-    >
-      <p className="text-[10px] text-zinc-400">{title}</p>
-      <p className="mt-0.5 text-lg font-extrabold tracking-tight">{value}</p>
-      {footer}
-    </div>
-  );
-}
-
-function BlocksTrail() {
-  return (
-    <div className="mt-0.5 flex items-center gap-1">
-      <div className="h-2 w-4 rounded bg-zinc-700" />
-      <div className="h-2 w-4 rounded bg-zinc-700" />
-      <div className="h-2 w-4 rounded bg-zinc-700" />
-      <div className="h-2 w-4 rounded bg-zinc-700" />
-      <div className="h-2 w-4 rounded bg-[#FF6600]" />
-    </div>
+    <footer className="w-full bg-[#FF6600] text-black text-xs font-bold px-6 py-2 text-right">
+      ORANGE PILL, 2025, ALL RIGHTS RESERVED
+    </footer>
   );
 }
