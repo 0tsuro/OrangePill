@@ -62,11 +62,11 @@ export default function Page() {
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <button
                   onClick={() => setConnected((s) => !s)}
-                  className="mb-5 rounded-lg bg-[#FF6600] px-4 py-2 text-sm font-bold text-white shadow-[0_4px_12px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
+                  className="mb-6 rounded-xl bg-[#FF6600] px-8 py-4 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition active:scale-[0.98] hover:brightness-110"
                 >
                   {connected ? "Wallet Connected" : "Connect Wallet"}
                 </button>
-                <p className="text-xs text-zinc-300">
+                <p className="text-base text-zinc-200 font-medium">
                   Connect Your Wallet to Claim Pills!
                 </p>
               </div>
