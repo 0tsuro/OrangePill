@@ -66,18 +66,17 @@ export default function Cup({
   imgOffsetY = 0,
   imgScale = 1,
 
-  // tes réglages actuels
   maskInsetLeftCss = 0,
   maskInsetRightCss = 60,
   maskInsetTopCss = 0,
   maskInsetBottomCss = 70,
 
-  // nouveau : remonter un peu le visuel
   cupLiftPx = 24,
 }: CupProps) {
   const [pills] = React.useState(initialPills);
   const [selectedChip, setSelectedChip] = React.useState<string | null>(null);
 
+  const containerRef = React.useRef<HTMLDivElement>(null); // 👈 nouveau: on mesure CE conteneur
   const hostRef = React.useRef<HTMLDivElement>(null);
   const pillsRef = React.useRef<Pill[]>([]);
   const sizeRef = React.useRef({ w: 0, h: 0 });
@@ -92,11 +91,11 @@ export default function Cup({
   const targetSpriteCount = Math.min(48, Math.max(10, Math.floor(pills / 28)));
 
   const rebuildMaskCanvas = React.useCallback(() => {
-    const host = hostRef.current;
+    const container = containerRef.current;
     const maskImg = maskImageRef.current;
-    if (!host || !maskImg) return;
+    if (!container || !maskImg) return;
 
-    const rect = host.getBoundingClientRect();
+    const rect = container.getBoundingClientRect(); // 👈 on mesure hors <foreignObject>
     const Wcss = rect.width;
     const Hcss = rect.height;
     if (Wcss <= 0 || Hcss <= 0) return;
@@ -116,7 +115,7 @@ export default function Cup({
 
     // repère CSS → device px
     ctx.setTransform(pxPerCssX, 0, 0, pxPerCssY, 0, 0);
-    // viewBox → CSS
+    // viewBox → CSS (le SVG occupe toute la boîte, même ratio grâce à aspect-ratio)
     ctx.scale(Wcss / vbWidth, Hcss / vbHeight);
 
     // insets convertis en unités viewBox
@@ -151,19 +150,20 @@ export default function Cup({
     img.src = maskSrc;
   }, [maskSrc, rebuildMaskCanvas]);
 
+  // 👉 Observe le CONTENEUR (pas le host dans <foreignObject>)
   React.useEffect(() => {
-    const host = hostRef.current;
-    if (!host) return;
+    const el = containerRef.current;
+    if (!el) return;
 
     const onResize = () => {
-      const r = host.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
       sizeRef.current = { w: r.width, h: r.height };
       if (maskImageRef.current) rebuildMaskCanvas();
     };
 
-    onResize();
+    onResize(); // force un premier passage (Vercel)
     const ro = new ResizeObserver(onResize);
-    ro.observe(host);
+    ro.observe(el);
     return () => ro.disconnect();
   }, [rebuildMaskCanvas]);
 
@@ -177,14 +177,8 @@ export default function Cup({
     const ctx = canvas.getContext("2d");
     if (!ctx) return false;
 
-    const px = Math.max(
-      0,
-      Math.min(canvas.width - 1, Math.floor(x * pxPerCssXRef.current))
-    );
-    const py = Math.max(
-      0,
-      Math.min(canvas.height - 1, Math.floor(y * pxPerCssYRef.current))
-    );
+    const px = Math.max(0, Math.min(canvas.width - 1, Math.floor(x * pxPerCssXRef.current)));
+    const py = Math.max(0, Math.min(canvas.height - 1, Math.floor(y * pxPerCssYRef.current)));
 
     try {
       const a = ctx.getImageData(px, py, 1, 1).data[3];
@@ -309,16 +303,18 @@ export default function Cup({
   }, []);
 
   return (
-    // 🔧 ICI : on ne force plus h-full/items-end pour ne pas “manger” le reste de la page
     <div className="relative w-full">
       <div
+        ref={containerRef}                             
         className="relative w-full max-w-[560px] mx-auto"
-        // on remonte dans le flux (pas de transform)
-        style={{ marginTop: `-${cupLiftPx}px` }}
+        style={{
+          marginTop: `-${cupLiftPx}px`,
+          aspectRatio: `${vbWidth} / ${vbHeight}`,     /* 👈 hauteur non-nulle immédiate */
+        }}
       >
         <svg
           viewBox={`0 0 ${vbWidth} ${vbHeight}`}
-          className="block h-auto w-full"
+          className="block h-full w-full"              
           preserveAspectRatio="xMidYMid meet"
           aria-hidden
         >
