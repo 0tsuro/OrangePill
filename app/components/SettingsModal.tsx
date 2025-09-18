@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import Image from "next/image";
 
 export default function SettingsModal({
   open,
@@ -20,16 +21,21 @@ export default function SettingsModal({
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="grid size-8 place-items-center rounded-full bg-white/10">
-              ⚙️
+              <Image src={"/settings.svg"} width={24} height={24} alt="" />
             </span>
             <h3 className="text-2xl font-extrabold">Transactions Settings</h3>
           </div>
           <button
             onClick={onClose}
-            className="grid size-8 place-items-center rounded-full bg-white/10 hover:bg-white/15"
-            aria-label="Close"
+            className="grid size-8 place-items-center rounded-full"
           >
-            ×
+            <Image
+              className="cursor-pointer"
+              src={"/close.svg"}
+              width={24}
+              height={24}
+              alt=""
+            />
           </button>
         </div>
 

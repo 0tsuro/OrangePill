@@ -79,11 +79,15 @@ export default function LeaderboardModal({
 
             <button
               onClick={onClose}
-              className="grid size-8 place-items-center rounded-full bg-white/10 text-white/80 hover:bg-white/15"
-              aria-label="Close"
-              title="Close"
+              className="grid size-8 place-items-center rounded-full"
             >
-              ×
+              <Image
+                className="cursor-pointer"
+                src={"/close.svg"}
+                width={24}
+                height={24}
+                alt=""
+              />
             </button>
           </div>
         </div>

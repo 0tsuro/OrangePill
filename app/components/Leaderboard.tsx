@@ -126,7 +126,7 @@ export default function Leaderboard({
       <button
         type="button"
         onClick={onOpen}
-        className="mt-4 w-full rounded-xl bg-[#FF6600] px-4 py-2 text-sm font-semibold text-white shadow-[0_3px_8px_rgba(255,102,0,.35)] hover:brightness-110 active:scale-[0.98] transition"
+        className="cursor-pointer mt-4 w-full rounded-xl bg-[#FF6600] px-4 py-2 text-sm font-semibold text-white shadow-[0_3px_8px_rgba(255,102,0,.35)] hover:brightness-110 active:scale-[0.98] transition"
       >
         Open Leaderboard
       </button>

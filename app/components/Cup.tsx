@@ -6,9 +6,26 @@ type CupProps = {
   connected: boolean;
   onToggleConnect: () => void;
   onOpenSettings: () => void;
+
   initialPills?: number;
-  cupSrc?: string;
   pillSrc?: string;
+
+  /** Cup visuals */
+  cupSrc?: string; // full cup image (body)
+  cupRimSrc?: string | null; // optional rim/lid overlay (for depth), null if none
+  settingsIconSrc?: string;
+
+  /** Vector path (inner hole) from Figma – EXACT d=… */
+  innerPathD?: string;
+
+  /** Figma canvas size of that path (so we can use the same viewBox) */
+  vbWidth?: number; // default 512.29
+  vbHeight?: number; // default 618.67
+
+  /** Fine-tune if your PNG isn't on the exact same canvas as the vector */
+  imgOffsetX?: number; // in viewBox units
+  imgOffsetY?: number; // in viewBox units
+  imgScale?: number; // scale image inside viewBox (1 = no scale)
 };
 
 type Pill = {
@@ -25,51 +42,65 @@ export default function Cup({
   connected,
   onToggleConnect,
   onOpenSettings,
+
   initialPills = 784,
-  cupSrc = "/cup.png",
   pillSrc = "/rankpill.png",
+
+  cupSrc = "/cup.png",
+  cupRimSrc = null,
+  settingsIconSrc = "/settings.svg",
+
+  // Paste your exact Figma path here (the one you sent):
+  innerPathD = "M498.979 599.279C307.855 629.4 210.29 630.338 19.2495 599.286C18.2497 599.123 17.4831 598.267 17.4585 597.255L3.072 5.71579C3.04323 4.53298 3.9942 3.55859 5.17736 3.55859H513.156C514.34 3.55859 515.291 4.5332 515.262 5.71614L500.78 597.246C500.755 598.263 499.983 599.12 498.979 599.279Z",
+
+  // The viewBox must match the Figma canvas of that path
+  vbWidth = 512.29,
+  vbHeight = 618.67,
+
+  // If your PNG isn't pixel-aligned to that same canvas, tweak these slightly
+  imgOffsetX = 0,
+  imgOffsetY = 0,
+  imgScale = 1,
 }: CupProps) {
   const [pills] = React.useState(initialPills);
+  const [selectedChip, setSelectedChip] = React.useState<string | null>(null);
 
-  const playRef = React.useRef<HTMLDivElement>(null);
+  const hostRef = React.useRef<HTMLDivElement>(null);
   const pillsRef = React.useRef<Pill[]>([]);
   const sizeRef = React.useRef({ w: 0, h: 0 });
-  const rafRef = React.useRef<number>();
+  const rafRef = React.useRef<number | null>(null);
 
-  // smaller, slower, more even
-  const targetSpriteCount = Math.min(42, Math.max(8, Math.floor(pills / 32)));
+  // sprite count scales with total pills (bounded)
+  const targetSpriteCount = Math.min(48, Math.max(10, Math.floor(pills / 28)));
 
-  /* measure inner area */
+  // Measure responsive host size (inside foreignObject)
   React.useEffect(() => {
-    const host = playRef.current;
+    const host = hostRef.current;
     if (!host) return;
-    const ro = new ResizeObserver(([entry]) => {
-      if (!entry) return;
-      sizeRef.current = {
-        w: entry.contentRect.width,
-        h: entry.contentRect.height,
-      };
-    });
+    const update = () => {
+      const r = host.getBoundingClientRect();
+      sizeRef.current = { w: r.width, h: r.height };
+    };
+    update();
+    const ro = new ResizeObserver(update);
     ro.observe(host);
-    const r = host.getBoundingClientRect();
-    sizeRef.current = { w: r.width, h: r.height };
     return () => ro.disconnect();
   }, []);
 
-  /* spawn/remove to match target */
+  // Create/remove pills to match target count
   React.useEffect(() => {
-    const host = playRef.current;
+    const host = hostRef.current;
     if (!host) return;
     const arr = pillsRef.current;
 
     while (arr.length < targetSpriteCount) {
-      const w = 14 + Math.random() * 6; // smaller than before
+      const w = 14 + Math.random() * 6;
       const h = w;
       const { w: W, h: H } = sizeRef.current;
 
-      // evenly distributed across full bottom area
+      // spawn anywhere inside the masked area
       const x = Math.random() * Math.max(1, W - w);
-      const y = H * (0.2 + Math.random() * 0.7);
+      const y = Math.random() * Math.max(1, H - h);
 
       const img = document.createElement("img");
       img.src = pillSrc;
@@ -77,7 +108,7 @@ export default function Cup({
       img.style.position = "absolute";
       img.style.willChange = "transform";
       img.style.pointerEvents = "none";
-      img.style.opacity = "0.55"; // softer
+      img.style.opacity = "0.55";
       img.style.filter = "drop-shadow(0 2px 5px rgba(0,0,0,.35))";
 
       host.appendChild(img);
@@ -88,9 +119,8 @@ export default function Cup({
         y,
         w,
         h,
-        // slower speed + random dir (prevents grouping)
-        vx: (Math.random() * 0.22 + 0.08) * (Math.random() < 0.5 ? -1 : 1),
-        vy: (Math.random() * 0.22 + 0.08) * (Math.random() < 0.5 ? -1 : 1),
+        vx: (Math.random() * 0.18 + 0.06) * (Math.random() < 0.5 ? -1 : 1),
+        vy: (Math.random() * 0.18 + 0.06) * (Math.random() < 0.5 ? -1 : 1),
       });
     }
 
@@ -100,14 +130,12 @@ export default function Cup({
     }
   }, [targetSpriteCount, pillSrc]);
 
-  /* physics with bigger inset (never clipped) */
+  // Physics / bounce loop
   React.useEffect(() => {
     const step = () => {
-      const S = sizeRef.current;
-      const arr = pillsRef.current;
-      const inset = 10; // larger guard
-
-      for (const p of arr) {
+      const { w: W, h: H } = sizeRef.current;
+      const inset = 8;
+      for (const p of pillsRef.current) {
         p.x += p.vx;
         p.y += p.vy;
 
@@ -115,16 +143,16 @@ export default function Cup({
           p.x = inset;
           p.vx *= -1;
         }
-        if (p.x + p.w >= S.w - inset) {
-          p.x = S.w - inset - p.w;
+        if (p.x + p.w >= W - inset) {
+          p.x = W - inset - p.w;
           p.vx *= -1;
         }
         if (p.y <= inset) {
           p.y = inset;
           p.vy *= -1;
         }
-        if (p.y + p.h >= S.h - inset) {
-          p.y = S.h - inset - p.h;
+        if (p.y + p.h >= H - inset) {
+          p.y = H - inset - p.h;
           p.vy *= -1;
         }
 
@@ -133,7 +161,6 @@ export default function Cup({
         node.style.width = `${p.w}px`;
         node.style.height = `${p.h}px`;
       }
-
       rafRef.current = requestAnimationFrame(step);
     };
     rafRef.current = requestAnimationFrame(step);
@@ -143,96 +170,151 @@ export default function Cup({
   }, []);
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center">
-      <div className="relative h-full w-full max-w-[640px]">
-        {/* Cup artwork */}
-        <Image
-          src={cupSrc}
-          alt="Cup"
-          width={640}
-          height={520}
-          className="z-0 h-auto w-full select-none object-contain"
-          priority
-        />
+    <div className="relative flex h-full w-full items-end justify-center">
+      {/* Keep it responsive with a max width; the SVG scales itself */}
+      <div className="relative w-full max-w-[560px]">
+        {/* SVG uses the SAME viewBox as your Figma path → alignment is exact */}
+        <svg
+          viewBox={`0 0 ${vbWidth} ${vbHeight}`}
+          className="block h-auto w-full"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden
+        >
+          {/* Cup image, placed in viewBox coords (fine-tunable via offset/scale) */}
+          <g
+            transform={`translate(${imgOffsetX}, ${imgOffsetY}) scale(${imgScale})`}
+          >
+            <image
+              href={cupSrc}
+              x="0"
+              y="0"
+              width={vbWidth}
+              height={vbHeight}
+            />
+          </g>
 
-        {/* Pills play area — overflow hidden + tighter clipPath */}
-        <div
-          ref={playRef}
-          className="pointer-events-none absolute left-1/2 top-[16%] z-10 h-[72%] w-[78%] -translate-x-1/2 overflow-hidden"
-          style={{
-            clipPath:
-              "polygon(8% 0%, 92% 0%, 90% 12%, 90% 95%, 10% 95%, 10% 12%)",
-          }}
-        />
+          {/* Define the clipPath in USER SPACE (matches your Figma path exactly) */}
+          <defs>
+            <clipPath id="cup-inner-clip" clipPathUnits="userSpaceOnUse">
+              <path d={innerPathD} />
+            </clipPath>
+          </defs>
 
-        {/* Overlay UI */}
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6">
-          {!connected ? (
-            <>
-              <button
-                onClick={onToggleConnect}
-                className="mb-6 rounded-xl bg-[#FF6600] px-8 py-3 text-xl font-extrabold text-white shadow-[0_8px_20px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
-              >
-                Connect Wallet
-              </button>
-              <p className="text-sm text-zinc-300">
-                Connect Your Wallet to Claim Pills!
-              </p>
-            </>
-          ) : (
-            <>
-              {/* Banner */}
-              <div className="mb-4 rounded-md bg-white/10 px-8 py-3">
-                <p className="text-2xl font-extrabold tracking-wide">
-                  Your Pills
+          {/* Pills: a responsive HTML host clipped by the exact inner path */}
+          <foreignObject
+            x="0"
+            y="0"
+            width={vbWidth}
+            height={vbHeight}
+            clipPath="url(#cup-inner-clip)"
+          >
+            <div
+              ref={hostRef}
+              style={{
+                width: "100%",
+                height: "100%",
+                position: "relative",
+                overflow: "hidden",
+                // debug: background: "rgba(0,255,0,0.06)",
+              }}
+            />
+          </foreignObject>
+
+          {/* Optional: rim/lid overlay for depth (sits on top) */}
+          {cupRimSrc && (
+            <g
+              transform={`translate(${imgOffsetX}, ${imgOffsetY}) scale(${imgScale})`}
+            >
+              <image
+                href={cupRimSrc}
+                x="0"
+                y="0"
+                width={vbWidth}
+                height={vbHeight}
+                style={{ pointerEvents: "none" }}
+              />
+            </g>
+          )}
+        </svg>
+
+        {/* UI overlay above everything, unchanged */}
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-8">
+          <div className="pointer-events-auto flex flex-col items-center">
+            {!connected ? (
+              <>
+                <button
+                  onClick={onToggleConnect}
+                  className="mb-7 rounded-xl bg-[#FF6600] px-6 py-2.5 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
+                >
+                  Connect Wallet
+                </button>
+                <p className="text-[13px] text-zinc-300">
+                  Connect Your Wallet to Claim Pills!
                 </p>
-              </div>
-
-              {/* Orange number */}
-              <p className="text-[86px] font-extrabold leading-none text-[#FF6600] drop-shadow-[0_2px_0_rgba(0,0,0,0.45)]">
-                {new Intl.NumberFormat("en-US").format(pills)}
-              </p>
-
-              {/* Tagline */}
-              <p className="mt-3 text-center font-semibold text-white">
-                Take more to climb
-                <br /> the leaderboard!
-              </p>
-
-              {/* CTA */}
-              <button
-                onClick={onOpenSettings}
-                className="mt-6 rounded-2xl bg-[#FF6600] px-10 py-5 text-2xl font-extrabold text-white shadow-[0_16px_40px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
-              >
-                Take Your Pill
-              </button>
-
-              {/* Chips + gear (unchanged sizes vs mock) */}
-              <div className="mt-5 flex items-center gap-3">
-                {["x10", "x50", "x20"].map((t) => (
-                  <div
-                    key={t}
-                    className="rounded-xl bg-[#1b1b1b] px-4 py-2 text-sm font-bold text-white ring-1 ring-white/15 shadow-[0_0_0_6px_rgba(255,255,255,0.04),0_6px_14px_rgba(0,0,0,0.35)]"
-                  >
-                    {t}
-                  </div>
-                ))}
+              </>
+            ) : (
+              <>
+                <div className="mb-4 rounded-md bg-white/10 px-6 py-2">
+                  <p className="text-lg font-extrabold tracking-wide">
+                    Your Pills
+                  </p>
+                </div>
+                <p className="text-[60px] font-extrabold leading-none text-[#FF6600] drop-shadow-[0_2px_0_rgba(0,0,0,0.45)]">
+                  {new Intl.NumberFormat("en-US").format(pills)}
+                </p>
+                <p className="mt-3 text-center text-[13px] font-semibold text-white">
+                  Take more to climb
+                  <br /> the leaderboard!
+                </p>
                 <button
                   onClick={onOpenSettings}
-                  className="grid place-items-center rounded-xl bg-[#1b1b1b] p-2 ring-1 ring-white/15 shadow-[0_0_0_6px_rgba(255,255,255,0.04),0_6px_14px_rgba(0,0,0,0.35)]"
-                  aria-label="Settings"
+                  className="mt-5 rounded-xl bg-[#FF6600] px-7 py-3 text-lg font-extrabold text-white shadow-[0_12px_28px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-6 w-6 text-white/90"
-                    fill="currentColor"
-                  >
-                    <path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a7.9 7.9 0 00-.2-1.8l2.1-1.6-2-3.4-2.5 1a8 8 0 00-3.1-1.8l-.4-2.7h-4l-.4 2.7a8 8 0 00-3.1 1.8l-2.5-1-2 3.4 2.1 1.6A8 8 0 003 12c0 .6.07 1.2.2 1.8l-2.1 1.6 2 3.4 2.5-1a8 8 0 003.1 1.8l.4 2.7h4l.4-2.7a8 8 0 003.1-1.8l2.5 1 2-3.4-2.1-1.6c.13-.6.2-1.2.2-1.8z" />
-                  </svg>
+                  Take Your Pill
                 </button>
-              </div>
-            </>
-          )}
+                <div className="mt-5 flex items-center gap-4">
+                  {(["x10", "x50", "x20"] as const).map((t) => {
+                    const isActive = selectedChip === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setSelectedChip(t)}
+                        aria-pressed={isActive}
+                        title={`Select ${t}`}
+                        className={[
+                          "cursor-pointer rounded-xl px-4 py-2 text-sm font-bold transition",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6600]",
+                          "active:scale-[0.98] hover:-translate-y-[1px]",
+                          "bg-[#1b1b1b] text-white ring-1 ring-white/15",
+                          "shadow-[0_0_0_6px_rgba(255,255,255,0.04),0_6px_14px_rgba(0,0,0,0.35)]",
+                          "hover:ring-white/30",
+                          isActive
+                            ? "bg-[#FF6600] text-black ring-[#FF6600] shadow-[0_0_10px_#ff660055,0_0_24px_#ff660033]"
+                            : "",
+                        ].join(" ")}
+                      >
+                        {t}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={onOpenSettings}
+                    aria-label="Settings"
+                    className="cursor-pointer grid place-items-center rounded-xl bg-[#1b1b1b] p-2 ring-1 ring-white/15 shadow-[0_0_0_6px_rgba(255,255,255,0.04),0_6px_14px_rgba(0,0,0,0.35)] transition hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6600] active:scale-[0.98]"
+                  >
+                    <Image
+                      src={settingsIconSrc}
+                      alt="Settings"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
