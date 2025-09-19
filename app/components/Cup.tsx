@@ -393,7 +393,7 @@ export default function Cup({
               <>
                 <button
                   onClick={onToggleConnect}
-                  className="mb-7 rounded-xl bg-[#FF6600] px-6 py-2.5 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
+                  className="cursor-pointer mb-7 rounded-xl bg-[#FF6600] px-6 py-2.5 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
                 >
                   Connect Wallet
                 </button>

@@ -74,6 +74,8 @@ export default function RightStats({
 
 // Aura floue douce + anneau coloré autour de la carte.
 // Isolation pour que les blurs ne se mélangent pas entre cartes.
+// --- CardBase : glow uniquement au hover, carte par carte ---
+// --- CardBase : base glow réduit, hover fortement accentué (carte par carte) ---
 function CardBase({
   children,
   glow = "orange",
@@ -81,32 +83,38 @@ function CardBase({
   children: React.ReactNode;
   glow?: "orange" | "white";
 }) {
-  const auraColor = glow === "orange" ? "#FF6600" : "#FFFFFF";
+  const isOrange = glow === "orange";
+  const ringBase = isOrange ? "ring-[#FF66001f]" : "ring-white/20"; // base très discret
+  const ringHover = isOrange ? "hover:ring-[#FF6600]" : "hover:ring-white/80";
+  const auraColor = isOrange ? "#FF6600" : "#FFFFFF";
+  const hoverShadow = isOrange
+    ? "hover:shadow-[0_0_22px_#ff66004d,0_0_48px_#ff660026]"
+    : "hover:shadow-[0_0_18px_#ffffff40,0_0_36px_#ffffff1f]";
 
   return (
     <div className="relative isolate">
-      {/* Aura / glow derrière la carte (plus “fluo” mais doux) */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-1 rounded-2xl blur-2xl"
-        style={{
-          background: auraColor,
-          opacity: glow === "orange" ? 0.2 : 1, // intensité de l’aura
-          filter: "saturate(1.1)",
-        }}
-      />
-      {/* Carte */}
+      {/* La carte est la "peer" ; l'aura (en dessous) réagit à son hover */}
       <div
         className={[
           "relative h-48 rounded-xl bg-[#0c0c0c] p-6",
           "flex flex-col items-center justify-center text-center",
-          glow === "orange"
-            ? "ring-2 ring-[#FF6600BF] shadow-[0_0_14px_#ff66004d,0_0_28px_#ff660026]"
-            : "ring-2 ring-white/85 shadow-[0_0_12px_#ffffff40,0_0_22px_#ffffff1f]",
+          "peer transition-all duration-300", // animations douces
+          "ring-1",
+          ringBase,
+          ringHover,
+          hoverShadow,
+          "motion-safe:hover:-translate-y-0.5",
         ].join(" ")}
       >
         {children}
       </div>
+
+      {/* Aura derrière la carte : faible au repos, forte au hover */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-1 -z-10 rounded-2xl opacity-10 blur-xl transition-opacity duration-300 peer-hover:opacity-30"
+        style={{ background: auraColor, filter: "saturate(1.05)" }}
+      />
     </div>
   );
 }

@@ -5,7 +5,9 @@
   --foreground: #171717;
 }
 
-@theme inline {
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -33,6 +35,34 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.animate-modalIn {
+  animation: modalIn 0.3s ease forwards;
 }
 
 body {

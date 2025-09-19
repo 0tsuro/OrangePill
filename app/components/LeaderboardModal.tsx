@@ -27,7 +27,7 @@ export default function LeaderboardModal({
     const need = 18 - base.length;
     const extras: Leader[] = Array.from({ length: need }).map((_, i) => ({
       addr: `bc1dummy${(i + 1).toString().padStart(3, "0")}xxxxxxxxxxxxxxxx`,
-      score: 400 - i * 7, // descending a bit
+      score: 400 - i * 7,
     }));
     return [...base, ...extras];
   }, [leaders]);
@@ -38,19 +38,38 @@ export default function LeaderboardModal({
     return normalized.filter((l) => l.addr.toLowerCase().includes(q));
   }, [normalized, query]);
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-[80]">
-      {/* Backdrop blur */}
+    <div
+      className={`
+        fixed inset-0 z-[80] flex items-center justify-center
+        transition-opacity duration-200
+        ${
+          open
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }
+      `}
+    >
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-200"
         onClick={onClose}
-        aria-hidden
       />
 
-      {/* Panel — a bit wider & airier */}
-      <div className="absolute left-1/2 top-1/2 z-[81] w-[min(860px,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-white/10 bg-[#1B1B1B] p-6 shadow-[0_40px_120px_rgba(0,0,0,.6)]">
+      {/* Panel (centré via flex parent) */}
+      <div
+        className={`
+          relative z-[81] w-[min(860px,92vw)]
+          rounded-[20px] border border-white/10 bg-[#1B1B1B] p-6
+          shadow-[0_40px_120px_rgba(0,0,0,.6)]
+          transition-all duration-200
+          ${
+            open
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-95 translate-y-2"
+          }
+        `}
+      >
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -92,7 +111,7 @@ export default function LeaderboardModal({
           </div>
         </div>
 
-        {/* List with always-visible thin scrollbar (when overflow) */}
+        {/* List */}
         <div
           className="scrollwrap max-h-[58vh] overflow-y-auto pr-2"
           style={{
@@ -119,8 +138,7 @@ export default function LeaderboardModal({
                   className={[
                     "grid grid-cols-[40px_1fr_120px] items-center gap-3 rounded-[12px] border border-white/10 bg-[#141414] px-4 py-2.5",
                     highlight
-                      ? // stronger orange glow but still soft
-                        "ring-2 ring-[#FF6600B3] shadow-[0_0_10px_#ff660066,0_0_22px_#ff660033]"
+                      ? "ring-2 ring-[#FF6600B3] shadow-[0_0_10px_#ff660066,0_0_22px_#ff660033]"
                       : "hover:shadow-[0_0_10px_#ff660033]",
                   ].join(" ")}
                 >
@@ -152,7 +170,7 @@ export default function LeaderboardModal({
           </ul>
         </div>
 
-        {/* WebKit scrollbar (thin + visible) */}
+        {/* WebKit scrollbar */}
         <style jsx>{`
           .scrollwrap::-webkit-scrollbar {
             width: 4px;
