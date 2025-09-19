@@ -50,7 +50,7 @@ export default function Cup({
   onOpenSettings,
 
   initialPills = 784,
-  pillSrc = "/rankpill.png",
+  pillSrc = "/orangepill.png",
 
   cupSrc = "/cup.png",
   cupRimSrc = null,
@@ -137,7 +137,14 @@ export default function Cup({
 
     maskCanvasRef.current = canvas;
     setMaskReady(true);
-  }, [vbWidth, vbHeight, maskInsetLeftCss, maskInsetRightCss, maskInsetTopCss, maskInsetBottomCss]);
+  }, [
+    vbWidth,
+    vbHeight,
+    maskInsetLeftCss,
+    maskInsetRightCss,
+    maskInsetTopCss,
+    maskInsetBottomCss,
+  ]);
 
   const loadMaskImage = React.useCallback(() => {
     if (!maskSrc) return;
@@ -177,8 +184,14 @@ export default function Cup({
     const ctx = canvas.getContext("2d");
     if (!ctx) return false;
 
-    const px = Math.max(0, Math.min(canvas.width - 1, Math.floor(x * pxPerCssXRef.current)));
-    const py = Math.max(0, Math.min(canvas.height - 1, Math.floor(y * pxPerCssYRef.current)));
+    const px = Math.max(
+      0,
+      Math.min(canvas.width - 1, Math.floor(x * pxPerCssXRef.current))
+    );
+    const py = Math.max(
+      0,
+      Math.min(canvas.height - 1, Math.floor(y * pxPerCssYRef.current))
+    );
 
     try {
       const a = ctx.getImageData(px, py, 1, 1).data[3];
@@ -207,7 +220,9 @@ export default function Cup({
   }
 
   function advanceWithClamp(p: Pill, dx: number, dy: number) {
-    let lo = 0, hi = 1, best = 0;
+    let lo = 0,
+      hi = 1,
+      best = 0;
     for (let i = 0; i < 6; i++) {
       const mid = (lo + hi) * 0.5;
       const nx = p.x + dx * mid;
@@ -230,11 +245,13 @@ export default function Cup({
     const arr = pillsRef.current;
 
     while (arr.length < targetSpriteCount) {
-      const w = 14 + Math.random() * 6;
+      const w = 32 + Math.random() * 10;
       const h = w;
       const { w: W, h: H } = sizeRef.current;
 
-      let x = 0, y = 0, tries = 0;
+      let x = 0,
+        y = 0,
+        tries = 0;
       do {
         x = Math.random() * Math.max(1, W - w);
         y = Math.random() * Math.max(1, H - h);
@@ -258,7 +275,10 @@ export default function Cup({
 
       arr.push({
         el: img,
-        x, y, w, h,
+        x,
+        y,
+        w,
+        h,
         vx: (Math.random() * 0.18 + 0.06) * (Math.random() < 0.5 ? -1 : 1),
         vy: (Math.random() * 0.18 + 0.06) * (Math.random() < 0.5 ? -1 : 1),
       });
@@ -305,21 +325,29 @@ export default function Cup({
   return (
     <div className="relative w-full">
       <div
-        ref={containerRef}                             
+        ref={containerRef}
         className="relative w-full max-w-[560px] mx-auto"
         style={{
           marginTop: `-${cupLiftPx}px`,
-          aspectRatio: `${vbWidth} / ${vbHeight}`,     /* 👈 hauteur non-nulle immédiate */
+          aspectRatio: `${vbWidth} / ${vbHeight}` /* 👈 hauteur non-nulle immédiate */,
         }}
       >
         <svg
           viewBox={`0 0 ${vbWidth} ${vbHeight}`}
-          className="block h-full w-full"              
+          className="block h-full w-full"
           preserveAspectRatio="xMidYMid meet"
           aria-hidden
         >
-          <g transform={`translate(${imgOffsetX}, ${imgOffsetY}) scale(${imgScale})`}>
-            <image href={cupSrc} x="0" y="0" width={vbWidth} height={vbHeight} />
+          <g
+            transform={`translate(${imgOffsetX}, ${imgOffsetY}) scale(${imgScale})`}
+          >
+            <image
+              href={cupSrc}
+              x="0"
+              y="0"
+              width={vbWidth}
+              height={vbHeight}
+            />
           </g>
 
           <defs>
@@ -343,8 +371,17 @@ export default function Cup({
           </g>
 
           {cupRimSrc && (
-            <g transform={`translate(${imgOffsetX}, ${imgOffsetY}) scale(${imgScale})`}>
-              <image href={cupRimSrc} x="0" y="0" width={vbWidth} height={vbHeight} style={{ pointerEvents: "none" }} />
+            <g
+              transform={`translate(${imgOffsetX}, ${imgOffsetY}) scale(${imgScale})`}
+            >
+              <image
+                href={cupRimSrc}
+                x="0"
+                y="0"
+                width={vbWidth}
+                height={vbHeight}
+                style={{ pointerEvents: "none" }}
+              />
             </g>
           )}
         </svg>
@@ -360,12 +397,16 @@ export default function Cup({
                 >
                   Connect Wallet
                 </button>
-                <p className="text-[13px] text-zinc-300">Connect Your Wallet to Claim Pills!</p>
+                <p className="text-[13px] text-zinc-300">
+                  Connect Your Wallet to Claim Pills!
+                </p>
               </>
             ) : (
               <>
                 <div className="mb-4 rounded-md bg-white/10 px-6 py-2">
-                  <p className="text-lg font-extrabold tracking-wide">Your Pills</p>
+                  <p className="text-lg font-extrabold tracking-wide">
+                    Your Pills
+                  </p>
                 </div>
                 <p className="text-[60px] font-extrabold leading-none text-[#FF6600] drop-shadow-[0_2px_0_rgba(0,0,0,0.45)]">
                   {new Intl.NumberFormat("en-US").format(pills)}
@@ -376,7 +417,7 @@ export default function Cup({
                 </p>
                 <button
                   onClick={onOpenSettings}
-                  className="mt-5 rounded-xl bg-[#FF6600] px-7 py-3 text-lg font-extrabold text-white shadow-[0_12px_28px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
+                  className="cursor-pointer mt-5 rounded-xl bg-[#FF6600] px-7 py-3 text-lg font-extrabold text-white shadow-[0_12px_28px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
                 >
                   Take Your Pill
                 </button>
@@ -387,7 +428,10 @@ export default function Cup({
                       <button
                         key={t}
                         type="button"
-                        onClick={() => setSelectedChip(t)}
+                        onClick={
+                          () =>
+                            setSelectedChip((prev) => (prev === t ? null : t)) // 👈 toggle
+                        }
                         aria-pressed={isActive}
                         title={`Select ${t}`}
                         className={[
@@ -406,12 +450,19 @@ export default function Cup({
                       </button>
                     );
                   })}
+
                   <button
                     onClick={onOpenSettings}
                     aria-label="Settings"
                     className="cursor-pointer grid place-items-center rounded-xl bg-[#1b1b1b] p-2 ring-1 ring-white/15 shadow-[0_0_0_6px_rgba(255,255,255,0.04),0_6px_14px_rgba(0,0,0,0.35)] transition hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6600] active:scale-[0.98]"
                   >
-                    <NextImage src={settingsIconSrc} alt="Settings" width={20} height={20} className="object-contain" />
+                    <NextImage
+                      src={settingsIconSrc}
+                      alt="Settings"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />
                   </button>
                 </div>
               </>

@@ -20,7 +20,7 @@ const formatNumber = (n: number) => nf.format(n);
 export default function Leaderboard({
   leaders,
   pillIconSrc = "/pillrank.png",
-  pillRankSrc = "/rankpill.png",
+  pillRankSrc = "/orangepill.png",
   activeIndex,
   forceScrollDemo = true,
   onOpen,
@@ -112,8 +112,8 @@ export default function Leaderboard({
                   <Image
                     src={pillRankSrc}
                     alt="rank pill"
-                    width={18}
-                    height={18}
+                    width={26}
+                    height={26}
                   />
                 </div>
               </li>

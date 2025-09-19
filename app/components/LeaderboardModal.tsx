@@ -8,7 +8,7 @@ export default function LeaderboardModal({
   onClose,
   leaders,
   pillIconSrc = "/trophy.svg",
-  pillRankSrc = "/rankpill.png",
+  pillRankSrc = "/orangepill.png",
   activeIndex,
 }: {
   open: boolean;
@@ -54,7 +54,7 @@ export default function LeaderboardModal({
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image src={pillIconSrc} alt="" width={24} height={24} />
+            <Image src={pillIconSrc} alt="" width={72} height={72} />
             <h3 className="text-[16px] font-semibold">Leaderboard</h3>
           </div>
 
