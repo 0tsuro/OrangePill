@@ -55,11 +55,11 @@ export default function Leaderboard({
         <Image
           src={pillIconSrc}
           alt="Leaderboard Icon"
-          width={24}
-          height={24}
+          width={32}
+          height={32}
           priority
         />
-        <h2 className="text-base font-semibold">Leaderboard</h2>
+        <h2 className="text-xl font-semibold">Leaderboard</h2>
       </div>
 
       {/* Scrollable list */}
@@ -101,7 +101,10 @@ export default function Leaderboard({
                   >
                     {i + 1}.
                   </span>
-                  <span className="truncate text-sm text-white/90">
+                  <span
+                    className="truncate text-sm font-semibold text-white/90"
+                    style={{ fontFamily: "Poppins" }}
+                  >
                     {shortAddr(l.addr)}
                   </span>
                 </div>

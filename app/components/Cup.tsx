@@ -44,6 +44,44 @@ type Pill = {
   h: number;
 };
 
+export function TitlePlateImage({
+  children,
+  imageSrc = "/titlepill.png", // mets ton export ici (png/svg)
+  alt = "Title plate",
+  width = 620,
+  height = 112,
+}: {
+  children: React.ReactNode;
+  imageSrc?: string;
+  alt?: string;
+  width?: number; // taille cible en px
+  height?: number; // garde les proportions de ton export
+}) {
+  return (
+    <div className="relative inline-block" style={{ width, height }}>
+      {/* Image de la plaque en fond */}
+      <NextImage
+        src={imageSrc}
+        alt={alt}
+        fill
+        sizes={`${width}px`}
+        className="object-contain select-none pointer-events-none"
+        priority
+      />
+
+      {/* Titre centré par-dessus */}
+      <div className="absolute inset-0 grid place-items-center px-6">
+        <span
+          className="text-white font-extrabold tracking-tight"
+          style={{ fontFamily: "RubikOne", fontSize: Math.round(height * 0.3) }}
+        >
+          {children}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function Cup({
   connected,
   onToggleConnect,
@@ -403,12 +441,17 @@ export default function Cup({
               </>
             ) : (
               <>
-                <div className="mb-4 rounded-md bg-white/10 px-6 py-2">
-                  <p className="text-lg font-extrabold tracking-wide">
+                <div className="mb-4">
+                  <TitlePlateImage
+                    imageSrc="/titlepill.png"
+                    width={350}
+                    height={112}
+                  >
                     Your Pills
-                  </p>
+                  </TitlePlateImage>
                 </div>
-                <p className="text-[60px] font-extrabold leading-none text-[#FF6600] drop-shadow-[0_2px_0_rgba(0,0,0,0.45)]">
+
+                <p className="text-[100px] font-extrabold leading-none text-[#FF6600] drop-shadow-[0_2px_0_rgba(0,0,0,0.45)]">
                   {new Intl.NumberFormat("en-US").format(pills)}
                 </p>
                 <p className="mt-3 text-center text-[13px] font-semibold text-white">
@@ -417,7 +460,7 @@ export default function Cup({
                 </p>
                 <button
                   onClick={onOpenSettings}
-                  className="cursor-pointer mt-5 rounded-xl bg-[#FF6600] px-7 py-3 text-lg font-extrabold text-white shadow-[0_12px_28px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
+                  className="cursor-pointer mt-5 rounded-xl bg-[#FF6600] px-7 py-3 text-xl font-extrabold text-white shadow-[0_12px_28px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
                 >
                   Take Your Pill
                 </button>

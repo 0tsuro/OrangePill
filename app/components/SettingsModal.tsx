@@ -45,7 +45,7 @@ export default function SettingsModal({
             <span className="grid size-8 place-items-center rounded-full bg-white/10">
               <Image src={"/settings.svg"} width={24} height={24} alt="" />
             </span>
-            <h3 className="text-2xl font-extrabold">Transactions Settings</h3>
+            <h3 className="text-2xl font-semibold">Transactions Settings</h3>
           </div>
           <button
             onClick={onClose}
@@ -63,10 +63,16 @@ export default function SettingsModal({
 
         <div className="space-y-6">
           <div>
-            <label className="text-sm text-white/80">Fee Rate (sat/vb)</label>
+            <label
+              className="text-sm text-white/80 ml-4"
+              style={{ fontFamily: "Poppins" }}
+            >
+              Fee Rate (sat/vb)
+            </label>
             <input
               className="mt-2 w-full rounded-xl border border-white/10 bg-[#141414] px-4 py-3 text-sm outline-none ring-0"
               placeholder="…"
+              style={{ fontFamily: "Poppins" }}
             />
             <p className="mt-2 text-xs text-white/50">
               Lorem ipsum dolor siamet,consecturelit, sed do eiusmod tempor
@@ -75,7 +81,9 @@ export default function SettingsModal({
 
           <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#141414] px-4 py-3">
             <div>
-              <p className="text-sm">Fee Rate (sat/vb)</p>
+              <p className="text-sm" style={{ fontFamily: "Poppins" }}>
+                Fee Rate (sat/vb)
+              </p>
               <p className="text-xs text-white/50">
                 Lorem ipsum dolor siamet,consecturelit, sed do eiusmod tempor
               </p>

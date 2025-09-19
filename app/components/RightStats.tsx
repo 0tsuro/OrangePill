@@ -23,7 +23,12 @@ export default function RightStats({
     <aside className="flex flex-col gap-6">
       {/* Bloc 1 */}
       <CardBase glow="orange">
-        <p className="text-sm text-zinc-300">Next Pill Block:</p>
+        <p
+          className="text-xl font-semibold text-zinc-300"
+          style={{ fontFamily: "Poppins" }}
+        >
+          Next Pill Block:
+        </p>
         <p className="mt-2 text-3xl font-extrabold tracking-tight">
           {formatNumber(nextBlock)}
         </p>
@@ -34,7 +39,12 @@ export default function RightStats({
 
       {/* Bloc 2 */}
       <CardBase glow="orange">
-        <p className="text-sm text-zinc-300">Current Block:</p>
+        <p
+          className="text-xl font-semibold text-zinc-300"
+          style={{ fontFamily: "Poppins" }}
+        >
+          Current Block:
+        </p>
         <p className="mt-2 text-3xl font-extrabold tracking-tight">
           {formatNumber(currentBlock)}
         </p>
@@ -51,7 +61,12 @@ export default function RightStats({
 
       {/* Bloc 3 */}
       <CardBase glow="white">
-        <p className="text-sm text-zinc-300">Global Pills:</p>
+        <p
+          className="text-xl font-semibold text-zinc-300"
+          style={{ fontFamily: "Poppins" }}
+        >
+          Global Pills:
+        </p>
         <div className="mt-2 flex items-center justify-center gap-2">
           <p className="text-3xl font-extrabold tracking-tight">
             {formatNumber(globalPills)}

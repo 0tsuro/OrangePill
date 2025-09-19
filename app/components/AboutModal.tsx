@@ -64,7 +64,10 @@ export default function AboutModal({
           <h4 className="mb-2 text-center text-lg font-extrabold p-4">
             Lorem Ipsum Dolor Sit
           </h4>
-          <p className="mx-auto mb-6 max-w-3xl text-center text-sm text-zinc-200">
+          <p
+            className="mx-auto mb-6 max-w-3xl text-center text-sm text-zinc-200 "
+            style={{ fontFamily: "Poppins" }}
+          >
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
             eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
             ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
@@ -78,7 +81,10 @@ export default function AboutModal({
           <h4 className="mb-2 text-center text-lg font-extrabold p-4">
             Lorem Ipsum Dolor Sit
           </h4>
-          <p className="mx-auto mb-6 max-w-3xl text-center text-sm text-zinc-200">
+          <p
+            className="mx-auto mb-6 max-w-3xl text-center text-sm text-zinc-200"
+            style={{ fontFamily: "Poppins" }}
+          >
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
             eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
             ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut

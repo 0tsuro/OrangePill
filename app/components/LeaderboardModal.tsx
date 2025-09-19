@@ -153,7 +153,10 @@ export default function LeaderboardModal({
                   </div>
 
                   {/* address */}
-                  <div className="truncate text-[13px] text-white/85">
+                  <div
+                    className="truncate text-sm font-semibold text-white/90"
+                    style={{ fontFamily: "Poppins" }}
+                  >
                     {shortAddr(l.addr)}
                   </div>
 
