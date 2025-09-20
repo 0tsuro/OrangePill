@@ -47,14 +47,18 @@ export default function Page() {
     <main className="relative h-dvh w-full bg-black text-white overflow-y-auto lg:overflow-hidden">
       {/* ============================== MOBILE ============================== */}
       <section className="lg:hidden">
-        <header className="px-6 pt-8 pb-4 text-center">
-          <h1 className="text-3xl font-extrabold">Orange Pill</h1>
+        <header className="flex flex-col justify-center items-center px-6 pt-8 pb-4 text-center">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-extrabold">Orange Pill</h1>
+            <Image
+              src={"/orangepill.png"}
+              alt="OrangePill Logo"
+              width={48}
+              height={48}
+            />
+          </div>
           <div className="mx-auto mt-2 h-1 w-20 rounded-full bg-[#FF7A0F]" />
         </header>
-
-        <div className="px-4">
-          <DesktopBannerCTA />
-        </div>
 
         <div className="space-y-4 px-4 pb-24 pt-4">
           <GlowCard color="white">
@@ -88,6 +92,10 @@ export default function Page() {
               />
             </div>
           </GlowCard>
+
+          <div>
+            <DesktopBannerCTA />
+          </div>
 
           <NotificationsCard />
         </div>
@@ -303,7 +311,7 @@ function DesktopBannerCTA() {
   };
 
   return (
-    <GlowCard color="orange" className="border border-white/1">
+    <GlowCard color="orange" className="border rounded-xl border-orange-500">
       <div className="flex items-start gap-3">
         <div className="flex size-10 items-center justify-center rounded-xl bg-[#FF7A0F]/15 ring-1 ring-[#FF7A0F]/30">
           <Image src="/desktop.png" width={28} height={28} alt="" />
