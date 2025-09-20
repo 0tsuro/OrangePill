@@ -22,18 +22,20 @@ export default function RightStats({
     // plus d’espace entre les cartes pour éviter que les halos se marchent dessus
     <aside className="flex flex-col gap-6">
       {/* Bloc 1 */}
+      {/* Bloc 1 */}
       <CardBase glow="orange">
-        <p
-          className="text-xl font-semibold text-zinc-300"
-          style={{ fontFamily: "Poppins" }}
-        >
-          Next Pill Block:
-        </p>
+        <p className="text-sm text-zinc-300">Next Pill Block:</p>
         <p className="mt-2 text-3xl font-extrabold tracking-tight">
           {formatNumber(nextBlock)}
         </p>
+
         <div className="mt-4 w-full">
-          <ProgressImageBar imageSrc={barImageSrc} />
+          <ImageStripScroller
+            src="/trackpill.png"
+            stripWidth={24000}
+            stripHeight={32}
+            displayHeight={48}
+          />
         </div>
       </CardBase>
 
@@ -146,6 +148,169 @@ function ProgressImageBar({ imageSrc }: { imageSrc: string }) {
         className="w-full h-8 object-cover pointer-events-none" // un peu plus haute pour être bien lisible
         priority
       />
+    </div>
+  );
+}
+
+/**
+ * Scroller ultra simple d’une grande image horizontale.
+ * - `src`: image longue exportée de Figma (toute la ligne)
+ * - `stripWidth`/`stripHeight`: dimensions réelles de l’image
+ * - `displayHeight`: hauteur d’affichage dans la carte (px)
+ * - `rounded`, `bg`: look du conteneur
+ */
+function ImageStripScroller({
+  src,
+  stripWidth,
+  stripHeight,
+  displayHeight = 48,
+  loop = false, // 👉 passe à true pour du scroll infini
+}: {
+  src: string;
+  stripWidth: number;
+  stripHeight: number;
+  displayHeight?: number;
+  loop?: boolean;
+}) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [x, setX] = React.useState(0); // position horizontale virtuelle (px)
+  const [vw, setVw] = React.useState(0); // largeur visible du conteneur
+
+  // mesure la largeur du conteneur pour calculer les bornes
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setVw(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const clamp = React.useCallback(
+    (val: number) => {
+      const max = Math.max(0, stripWidth - vw);
+      return Math.min(Math.max(0, val), max);
+    },
+    [stripWidth, vw]
+  );
+
+  // drag (pointer events)
+  const dragging = React.useRef(false);
+  const startX = React.useRef(0);
+  const startScroll = React.useRef(0);
+
+  const onPointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    const el = containerRef.current;
+    if (!el) return;
+    dragging.current = true;
+    startX.current = e.clientX;
+    startScroll.current = x;
+    el.setPointerCapture?.(e.pointerId);
+  };
+
+  const onPointerMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    if (!dragging.current) return;
+    const dx = e.clientX - startX.current;
+    setX((prev) =>
+      loop ? startScroll.current - dx : clamp(startScroll.current - dx)
+    );
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const endDrag: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    const el = containerRef.current;
+    dragging.current = false;
+    try {
+      el?.releasePointerCapture?.(e.pointerId);
+    } catch {}
+  };
+
+  // molette / trackpad (clampé ou infini)
+  const onWheel: React.WheelEventHandler<HTMLDivElement> = (e) => {
+    // horizontal si dispo, sinon on utilise deltaY
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    setX((prev) => (loop ? prev + delta : clamp(prev + delta)));
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // conteneur (aucun scroll natif → pas d’overscroll possible)
+  const containerStyle: React.CSSProperties = {
+    overflow: "hidden",
+    touchAction: "pan-x",
+    WebkitOverflowScrolling: "auto",
+    overscrollBehaviorX: "contain",
+    overscrollBehaviorY: "none",
+  };
+
+  if (!loop) {
+    // --- MODE CLAMP: on translate l’unique image, bornée 0..max ---
+    const trackStyle: React.CSSProperties = {
+      width: `${stripWidth}px`,
+      height: `${displayHeight}px`,
+      transform: `translateX(-${x}px)`,
+      willChange: "transform",
+    };
+
+    return (
+      <div
+        ref={containerRef}
+        className="relative w-full"
+        style={containerStyle}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onWheel={onWheel}
+      >
+        <div className="relative" style={trackStyle}>
+          <Image
+            src={src}
+            alt="Pill track"
+            width={stripWidth}
+            height={stripHeight}
+            className="block h-full w-auto select-none pointer-events-none"
+            priority
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // --- MODE INFINI: on duplique l’image et on wrap avec modulo ---
+  const norm = ((x % stripWidth) + stripWidth) % stripWidth; // offset [0..stripWidth)
+  const copies = Math.max(3, Math.ceil(vw / stripWidth) + 2); // assez d’images pour couvrir
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full"
+      style={containerStyle}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      onWheel={onWheel}
+    >
+      <div className="relative" style={{ height: `${displayHeight}px` }}>
+        {Array.from({ length: copies }).map((_, i) => {
+          const left = i * stripWidth - norm - stripWidth; // commence une image “en amont”
+          return (
+            <Image
+              key={i}
+              src={src}
+              alt={`Pill track ${i}`}
+              width={stripWidth}
+              height={stripHeight}
+              className="absolute top-0 block h-full w-auto select-none pointer-events-none"
+              style={{ left: `${left}px` }}
+              priority={i < 2}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
