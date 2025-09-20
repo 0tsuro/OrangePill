@@ -44,56 +44,18 @@ type Pill = {
   h: number;
 };
 
-export function TitlePlateImage({
-  children,
-  imageSrc = "/titlepill.png", // mets ton export ici (png/svg)
-  alt = "Title plate",
-  width = 620,
-  height = 112,
-}: {
-  children: React.ReactNode;
-  imageSrc?: string;
-  alt?: string;
-  width?: number; // taille cible en px
-  height?: number; // garde les proportions de ton export
-}) {
-  return (
-    <div className="relative inline-block" style={{ width, height }}>
-      {/* Image de la plaque en fond */}
-      <NextImage
-        src={imageSrc}
-        alt={alt}
-        fill
-        sizes={`${width}px`}
-        className="object-contain select-none pointer-events-none"
-        priority
-      />
-
-      {/* Titre centré par-dessus */}
-      <div className="absolute inset-0 grid place-items-center px-6">
-        <span
-          className="text-white font-extrabold tracking-tight"
-          style={{ fontFamily: "RubikOne", fontSize: Math.round(height * 0.3) }}
-        >
-          {children}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export default function Cup({
   connected,
   onToggleConnect,
   onOpenSettings,
 
   initialPills = 784,
-  pillSrc = "/orangepill.png",
+  pillSrc = "/pillbottle.png",
 
   cupSrc = "/cup.png",
   cupRimSrc = null,
   settingsIconSrc = "/settings.svg",
-  maskSrc = "/cup-mask.png",
+  maskSrc = "/maskcup.png",
 
   innerPathD = "M498.979 599.279C307.855 629.4 210.29 630.338 19.2495 599.286C18.2497 599.123 17.4831 598.267 17.4585 597.255L3.072 5.71579C3.04323 4.53298 3.9942 3.55859 5.17736 3.55859H513.156C514.34 3.55859 515.291 4.5332 515.262 5.71614L500.78 597.246C500.755 598.263 499.983 599.12 498.979 599.279Z",
 
@@ -104,9 +66,9 @@ export default function Cup({
   imgOffsetY = 0,
   imgScale = 1,
 
-  maskInsetLeftCss = 0,
-  maskInsetRightCss = 60,
-  maskInsetTopCss = 0,
+  maskInsetLeftCss = 30,
+  maskInsetRightCss = 80,
+  maskInsetTopCss = 10,
   maskInsetBottomCss = 70,
 
   cupLiftPx = 24,
@@ -114,7 +76,7 @@ export default function Cup({
   const [pills] = React.useState(initialPills);
   const [selectedChip, setSelectedChip] = React.useState<string | null>(null);
 
-  const containerRef = React.useRef<HTMLDivElement>(null); // 👈 nouveau: on mesure CE conteneur
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const pillsRef = React.useRef<Pill[]>([]);
   const sizeRef = React.useRef({ w: 0, h: 0 });
@@ -128,12 +90,13 @@ export default function Cup({
 
   const targetSpriteCount = Math.min(48, Math.max(10, Math.floor(pills / 28)));
 
+  /* ---------------------- Mask build ---------------------- */
   const rebuildMaskCanvas = React.useCallback(() => {
     const container = containerRef.current;
     const maskImg = maskImageRef.current;
     if (!container || !maskImg) return;
 
-    const rect = container.getBoundingClientRect(); // 👈 on mesure hors <foreignObject>
+    const rect = container.getBoundingClientRect();
     const Wcss = rect.width;
     const Hcss = rect.height;
     if (Wcss <= 0 || Hcss <= 0) return;
@@ -151,12 +114,9 @@ export default function Cup({
     pxPerCssXRef.current = pxPerCssX;
     pxPerCssYRef.current = pxPerCssY;
 
-    // repère CSS → device px
     ctx.setTransform(pxPerCssX, 0, 0, pxPerCssY, 0, 0);
-    // viewBox → CSS (le SVG occupe toute la boîte, même ratio grâce à aspect-ratio)
     ctx.scale(Wcss / vbWidth, Hcss / vbHeight);
 
-    // insets convertis en unités viewBox
     const insetL = (maskInsetLeftCss * vbWidth) / Wcss;
     const insetR = (maskInsetRightCss * vbWidth) / Wcss;
     const insetT = (maskInsetTopCss * vbHeight) / Hcss;
@@ -195,7 +155,6 @@ export default function Cup({
     img.src = maskSrc;
   }, [maskSrc, rebuildMaskCanvas]);
 
-  // 👉 Observe le CONTENEUR (pas le host dans <foreignObject>)
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -206,7 +165,7 @@ export default function Cup({
       if (maskImageRef.current) rebuildMaskCanvas();
     };
 
-    onResize(); // force un premier passage (Vercel)
+    onResize();
     const ro = new ResizeObserver(onResize);
     ro.observe(el);
     return () => ro.disconnect();
@@ -216,6 +175,7 @@ export default function Cup({
     loadMaskImage();
   }, [loadMaskImage]);
 
+  /* ---------------------- Pills inside mask ---------------------- */
   const isPointAllowed = React.useCallback((x: number, y: number): boolean => {
     const canvas = maskCanvasRef.current;
     if (!canvas) return false;
@@ -360,14 +320,15 @@ export default function Cup({
     };
   }, []);
 
+  /* ---------------------- Render ---------------------- */
   return (
     <div className="relative w-full">
       <div
         ref={containerRef}
-        className="relative w-full max-w-[560px] mx-auto"
+        className="relative w-full max-w-[560px] mx-auto levitate"
         style={{
           marginTop: `-${cupLiftPx}px`,
-          aspectRatio: `${vbWidth} / ${vbHeight}` /* 👈 hauteur non-nulle immédiate */,
+          aspectRatio: `${vbWidth} / ${vbHeight}`,
         }}
       >
         <svg
@@ -424,7 +385,7 @@ export default function Cup({
           )}
         </svg>
 
-        {/* UI identique */}
+        {/* UI */}
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-8">
           <div className="pointer-events-auto flex flex-col items-center">
             {!connected ? (
@@ -441,15 +402,7 @@ export default function Cup({
               </>
             ) : (
               <>
-                <div className="mb-4">
-                  <TitlePlateImage
-                    imageSrc="/titlepill.png"
-                    width={350}
-                    height={112}
-                  >
-                    Your Pills
-                  </TitlePlateImage>
-                </div>
+                <div className="mb-4 text-4xl">Your Pills</div>
 
                 <p className="text-[100px] font-extrabold leading-none text-[#FF6600] drop-shadow-[0_2px_0_rgba(0,0,0,0.45)]">
                   {new Intl.NumberFormat("en-US").format(pills)}
@@ -471,9 +424,8 @@ export default function Cup({
                       <button
                         key={t}
                         type="button"
-                        onClick={
-                          () =>
-                            setSelectedChip((prev) => (prev === t ? null : t)) // 👈 toggle
+                        onClick={() =>
+                          setSelectedChip((prev) => (prev === t ? null : t))
                         }
                         aria-pressed={isActive}
                         title={`Select ${t}`}
@@ -485,7 +437,7 @@ export default function Cup({
                           "shadow-[0_0_0_6px_rgba(255,255,255,0.04),0_6px_14px_rgba(0,0,0,0.35)]",
                           "hover:ring-white/30",
                           isActive
-                            ? "bg-[#FF6600] text-black ring-[#FF6600] shadow-[0_0_10px_#ff660055,0_0_24px_#ff660033]"
+                            ? "bg-[#FF6600] text-white ring-[#FF6600] shadow-[0_0_10px_#ff660055,0_0_24px_#ff660033]"
                             : "",
                         ].join(" ")}
                       >

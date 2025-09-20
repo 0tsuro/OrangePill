@@ -22,7 +22,7 @@ const leaders: Leader[] = [
   { addr: "bc1extra002", score: 650 },
 ];
 
-/* Dummys mobile (comme sur le screenshot) */
+/* Dummys mobile */
 const MOBILE_DUMMY = {
   nextPillBlocks: 5,
   currentBlock: 915_586,
@@ -47,20 +47,16 @@ export default function Page() {
     <main className="relative h-dvh w-full bg-black text-white overflow-y-auto lg:overflow-hidden">
       {/* ============================== MOBILE ============================== */}
       <section className="lg:hidden">
-        {/* Header mobile (centré) */}
         <header className="px-6 pt-8 pb-4 text-center">
           <h1 className="text-3xl font-extrabold">Orange Pill</h1>
           <div className="mx-auto mt-2 h-1 w-20 rounded-full bg-[#FF7A0F]" />
         </header>
 
-        {/* Banner: take the pill on PC */}
         <div className="px-4">
           <DesktopBannerCTA />
         </div>
 
-        {/* Cartes */}
         <div className="space-y-4 px-4 pb-24 pt-4">
-          {/* Next Pill Block */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Next Pill Block</p>
             <p className="mt-1 text-2xl font-extrabold text-[#FF7A0F]">
@@ -69,7 +65,6 @@ export default function Page() {
             </p>
           </GlowCard>
 
-          {/* Current Block */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Current Block</p>
             <p className="mt-1 text-3xl font-extrabold tracking-tight">
@@ -77,7 +72,6 @@ export default function Page() {
             </p>
           </GlowCard>
 
-          {/* Global Pills */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Global Pills</p>
             <div className="mt-1 flex items-center gap-2">
@@ -95,19 +89,19 @@ export default function Page() {
             </div>
           </GlowCard>
 
-          {/* Notifications */}
           <NotificationsCard />
         </div>
 
-        {/* mini footer bar orange */}
         <footer className="fixed inset-x-0 bottom-0 h-6 bg-[#FF7A0F]" />
       </section>
 
       {/* ============================== DESKTOP ============================= */}
       <section className="hidden h-full flex-col lg:flex">
-        <Navbar onOpenAbout={() => setAboutOpen(true)} />
+        <Navbar
+          onOpenAbout={() => setAboutOpen(true)}
+          isWalletConnected={connected}
+        />
 
-        {/* GRID (one-screen, no scroll) */}
         <section
           className="
             grid h-[calc(100dvh-120px)] w-full
@@ -115,7 +109,6 @@ export default function Page() {
             items-center gap-4 px-14
           "
         >
-          {/* LEFT */}
           <aside className="flex flex-col gap-4">
             <Leaderboard
               leaders={leaders}
@@ -125,14 +118,12 @@ export default function Page() {
             <RankCard myRank={5} />
           </aside>
 
-          {/* CENTER (Cup) */}
           <Cup
             connected={connected}
             onToggleConnect={() => setConnected((s) => !s)}
             onOpenSettings={() => setSettingsOpen(true)}
           />
 
-          {/* RIGHT (stats inside a container bg) */}
           <aside className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-3">
             <RightStats
               nextBlock={50}
@@ -145,7 +136,6 @@ export default function Page() {
           </aside>
         </section>
 
-        {/* FOOTER */}
         <footer className="pointer-events-none absolute inset-x-0 bottom-0">
           <div className="flex h-6 items-center justify-end bg-[#FF7A0F] pr-6 text-[10px] font-bold tracking-wide text-black">
             ORANGE PILL, 2025, ALL RIGHTS RESERVED
@@ -169,15 +159,24 @@ export default function Page() {
 }
 
 /* -------------------------------- NAVBAR --------------------------------- */
-function Navbar({ onOpenAbout }: { onOpenAbout: () => void }) {
+function Navbar({
+  onOpenAbout,
+  isWalletConnected = false,
+}: {
+  onOpenAbout: () => void;
+  isWalletConnected?: boolean;
+}) {
   const circle =
     "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-[#FF6600]/80 hover:text-white transition";
-  const oval =
-    "flex items-center justify-center rounded-full bg-zinc-900 border border-white/10 shadow-sm hover:bg-[#FF6600] hover:text-white transition h-12 px-6 text-sm font-semibold uppercase tracking-wide";
+  const ovalBase =
+    "flex items-center justify-center rounded-full h-12 px-6 text-sm font-semibold uppercase tracking-wide border transition";
+  const ovalIdle =
+    "bg-zinc-900 text-white border-white/10 hover:bg-[#FF6600] hover:text-white";
+  const ovalActive =
+    "bg-[#FF6600] text-white border-[#FF6600] shadow-[0_0_10px_#ff660055,0_0_24px_#ff660033]";
 
   return (
     <nav className="flex w-full items-center justify-between px-16 py-6">
-      {/* LEFT: logo + nav buttons */}
       <div className="flex items-center gap-4">
         <a href="#" className={`${circle} size-14`} aria-label="Home">
           <Image
@@ -189,17 +188,27 @@ function Navbar({ onOpenAbout }: { onOpenAbout: () => void }) {
             priority
           />
         </a>
-        <a href="#" className={`${oval} bg-[#FF6600] text-white`}>
+
+        <a
+          href="#"
+          aria-current={isWalletConnected ? "page" : undefined}
+          className={`${ovalBase} ${isWalletConnected ? ovalActive : ovalIdle}`}
+        >
           Dashboard
         </a>
-        <button onClick={onOpenAbout} className={`${oval} cursor-pointer`}>
+
+        <button
+          onClick={onOpenAbout}
+          className={`${ovalBase} ${ovalIdle} cursor-pointer`}
+        >
           What is OrangePill?
         </button>
+
         <a
           href="https://ordinals.com/"
           target="_blank"
           rel="noreferrer"
-          className={oval}
+          className={`${ovalBase} ${ovalIdle}`}
         >
           OrdiScan
           <div className="ml-1">
@@ -208,7 +217,6 @@ function Navbar({ onOpenAbout }: { onOpenAbout: () => void }) {
         </a>
       </div>
 
-      {/* RIGHT: round icons */}
       <div className="flex items-center gap-2">
         <a href="#" className={`${circle} size-10`} aria-label="Discord">
           <Image src="/discord.svg" width={20} height={20} alt="" />
@@ -228,7 +236,6 @@ function Navbar({ onOpenAbout }: { onOpenAbout: () => void }) {
 }
 
 /* ------------------------------ GlowCard (mobile) ------------------------------ */
-/** Carte réutilisable qui reproduit le style de tes cartes desktop (ring + glow + aura) */
 function GlowCard({
   children,
   color = "orange",
@@ -270,7 +277,6 @@ function GlowCard({
         {children}
       </div>
 
-      {/* Aura */}
       <div
         aria-hidden
         className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl opacity-20 blur-xl transition-opacity duration-300"
@@ -281,7 +287,6 @@ function GlowCard({
 }
 
 /* ------------------------ DesktopBannerCTA (mobile) ------------------------ */
-/** Bandeau mobile pour orienter l'utilisateur vers la version desktop. */
 function DesktopBannerCTA() {
   const [copied, setCopied] = React.useState(false);
   const href =

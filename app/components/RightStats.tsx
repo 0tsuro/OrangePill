@@ -34,7 +34,7 @@ export default function RightStats({
             stripWidth={24000}
             stripHeight={32}
             displayHeight={48} // EXACTEMENT la même hauteur qu’avant
-            speedPps={120} // pixels/seconde (dans les pixels RENDUS)
+            speedPps={30} // pixels/seconde (dans les pixels RENDUS)
             direction="rtl" // "rtl" (droite→gauche) ou "ltr"
           />
         </div>
