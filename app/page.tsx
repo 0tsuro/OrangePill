@@ -347,14 +347,15 @@ function NotificationsCard() {
           <li className="flex items-start gap-1">
             <span className="mt-0.5">Tap the</span>
             <span className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2 py-0.5 text-xs ring-1 ring-white/10">
-              <Image src="/share.svg" width={12} height={12} alt="" />
+              <Image src="/share.svg" width={18} height={18} alt="" />
               Share
             </span>
             <span className="mt-0.5">button</span>
           </li>
-          <li>
+          <li className="flex items-start gap-1">
             Select{" "}
-            <span className="rounded-full bg-[#FF7A0F]/20 px-2 py-0.5 text-xs font-semibold text-[#FF7A0F] ring-1 ring-[#FF7A0F]/30">
+            <span className="flex gap-2 rounded-full bg-[#FF7A0F]/20 px-2 py-0.5 text-xs font-semibold text-[#FF7A0F] ring-1 ring-[#FF7A0F]/30">
+              <Image src={"/plus.svg"} width={18} height={18} alt="" />
               Add to Home Screen
             </span>
           </li>
