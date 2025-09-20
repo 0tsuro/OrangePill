@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import Image from "next/image";
 
@@ -10,7 +11,7 @@ import RankCard from "./components/RankCard";
 import SettingsModal from "./components/SettingsModal";
 import AboutModal from "./components/AboutModal";
 
-/* Fake data (same as before) */
+/* ------------------------------- Fake data ------------------------------- */
 const leaders: Leader[] = [
   { addr: "bc1p7w69r4jv...1", score: 1319 },
   { addr: "bc1p7w69r4jv...2", score: 999 },
@@ -21,6 +22,20 @@ const leaders: Leader[] = [
   { addr: "bc1extra002", score: 650 },
 ];
 
+/* Dummys mobile (comme sur le screenshot) */
+const MOBILE_DUMMY = {
+  nextPillBlocks: 5,
+  currentBlock: 915_586,
+  globalPills: 10_367,
+};
+
+/* Utils */
+const nf = new Intl.NumberFormat("en-US");
+function formatNumber(n: number) {
+  return nf.format(n);
+}
+
+/* ---------------------------------- Page ---------------------------------- */
 export default function Page() {
   const [connected, setConnected] = React.useState(false);
 
@@ -29,16 +44,66 @@ export default function Page() {
   const [aboutOpen, setAboutOpen] = React.useState(false);
 
   return (
-    <main className="relative h-dvh w-full overflow-hidden bg-black text-white">
-      {/* MOBILE GATE */}
-      <section className="flex h-dvh w-full items-center justify-center px-6 text-center lg:hidden">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Desktop Only</h1>
-          <p className="text-zinc-300">pls use desktop</p>
+    <main className="relative h-dvh w-full bg-black text-white overflow-y-auto lg:overflow-hidden">
+      {/* ============================== MOBILE ============================== */}
+      <section className="lg:hidden">
+        {/* Header mobile (centré) */}
+        <header className="px-6 pt-8 pb-4 text-center">
+          <h1 className="text-3xl font-extrabold">Orange Pill</h1>
+          <div className="mx-auto mt-2 h-1 w-20 rounded-full bg-[#FF7A0F]" />
+        </header>
+
+        {/* Banner: take the pill on PC */}
+        <div className="px-4">
+          <DesktopBannerCTA />
         </div>
+
+        {/* Cartes */}
+        <div className="space-y-4 px-4 pb-24 pt-4">
+          {/* Next Pill Block */}
+          <GlowCard color="white">
+            <p className="text-sm text-zinc-400">Next Pill Block</p>
+            <p className="mt-1 text-2xl font-extrabold text-[#FF7A0F]">
+              {formatNumber(MOBILE_DUMMY.nextPillBlocks)}{" "}
+              <span className="font-bold">blocks</span>
+            </p>
+          </GlowCard>
+
+          {/* Current Block */}
+          <GlowCard color="white">
+            <p className="text-sm text-zinc-400">Current Block</p>
+            <p className="mt-1 text-3xl font-extrabold tracking-tight">
+              {formatNumber(MOBILE_DUMMY.currentBlock)}
+            </p>
+          </GlowCard>
+
+          {/* Global Pills */}
+          <GlowCard color="white">
+            <p className="text-sm text-zinc-400">Global Pills</p>
+            <div className="mt-1 flex items-center gap-2">
+              <p className="text-3xl font-extrabold tracking-tight">
+                {formatNumber(MOBILE_DUMMY.globalPills)}
+              </p>
+              <Image
+                src="/orangepill.png"
+                alt="pill"
+                width={48}
+                height={48}
+                className="pointer-events-none select-none"
+                priority
+              />
+            </div>
+          </GlowCard>
+
+          {/* Notifications */}
+          <NotificationsCard />
+        </div>
+
+        {/* mini footer bar orange */}
+        <footer className="fixed inset-x-0 bottom-0 h-6 bg-[#FF7A0F]" />
       </section>
 
-      {/* DESKTOP ONLY */}
+      {/* ============================== DESKTOP ============================= */}
       <section className="hidden h-full flex-col lg:flex">
         <Navbar onOpenAbout={() => setAboutOpen(true)} />
 
@@ -88,7 +153,7 @@ export default function Page() {
         </footer>
       </section>
 
-      {/* MODALS */}
+      {/* ================================ MODALS =============================== */}
       <LeaderboardModal
         open={leaderboardOpen}
         onClose={() => setLeaderboardOpen(false)}
@@ -159,5 +224,142 @@ function Navbar({ onOpenAbout }: { onOpenAbout: () => void }) {
         </a>
       </div>
     </nav>
+  );
+}
+
+/* ------------------------------ GlowCard (mobile) ------------------------------ */
+/** Carte réutilisable qui reproduit le style de tes cartes desktop (ring + glow + aura) */
+function GlowCard({
+  children,
+  color = "orange",
+  className = "",
+}: {
+  children: React.ReactNode;
+  color?: "orange" | "white";
+  className?: string;
+}) {
+  const isOrange = color === "orange";
+  const auraColor = isOrange ? "#FF6600" : "#FFFFFF";
+
+  const ringBase = isOrange ? "ring-[#FF66001f]" : "ring-white/20";
+  const ringHover = isOrange
+    ? "hover:ring-[#FF6600]/80"
+    : "hover:ring-white/90";
+
+  const baseShadow = isOrange
+    ? "shadow-[0_0_12px_#ff660026,0_0_28px_#ff660014]"
+    : "shadow-[0_0_10px_#ffffff22,0_0_22px_#ffffff10]";
+
+  const hoverShadow = isOrange
+    ? "hover:shadow-[0_0_24px_#ff66004d,0_0_52px_#ff66002e]"
+    : "hover:shadow-[0_0_20px_#ffffff4d,0_0_44px_#ffffff26]";
+
+  return (
+    <div className={`relative isolate ${className}`}>
+      <div
+        className={[
+          "relative rounded-2xl bg-[#1B1B1B] p-5",
+          "ring-1",
+          ringBase,
+          ringHover,
+          baseShadow,
+          hoverShadow,
+          "transition-all duration-300 motion-safe:hover:-translate-y-0.5",
+        ].join(" ")}
+      >
+        {children}
+      </div>
+
+      {/* Aura */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl opacity-20 blur-xl transition-opacity duration-300"
+        style={{ background: auraColor, filter: "saturate(1.06)" }}
+      />
+    </div>
+  );
+}
+
+/* ------------------------ DesktopBannerCTA (mobile) ------------------------ */
+/** Bandeau mobile pour orienter l'utilisateur vers la version desktop. */
+function DesktopBannerCTA() {
+  const [copied, setCopied] = React.useState(false);
+  const href =
+    typeof window !== "undefined"
+      ? window.location.href
+      : "https://orangepill.fun";
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
+
+  return (
+    <GlowCard color="orange" className="border border-white/1">
+      <div className="flex items-start gap-3">
+        <div className="flex size-10 items-center justify-center rounded-xl bg-[#FF7A0F]/15 ring-1 ring-[#FF7A0F]/30">
+          <Image src="/desktop.png" width={28} height={28} alt="" />
+        </div>
+        <div className="flex-1">
+          <p className="text-base font-semibold">
+            For the full experience, take the pill on{" "}
+            <span className="text-[#FF7A0F]">desktop</span>.
+          </p>
+
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={copy}
+              className="rounded-full bg-[#FF7A0F] px-3 py-1.5 text-sm font-semibold text-black ring-1 ring-black/10 transition hover:brightness-95 active:scale-[0.98]"
+            >
+              {copied ? "Copied ✓" : "Copy link"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </GlowCard>
+  );
+}
+
+/* --------------------------- NotificationsCard (mobile) --------------------------- */
+function NotificationsCard() {
+  return (
+    <GlowCard color="white" className="mt-2">
+      <div className="flex items-center gap-3">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-[#FF7A0F]/15 ring-1 ring-white/10">
+          <Image src="/bell.svg" width={16} height={16} alt="" />
+        </div>
+        <p className="text-base font-semibold">Enable Notifications</p>
+      </div>
+
+      <div className="mt-4 space-y-3 text-sm text-zinc-300">
+        <ol className="list-decimal space-y-2 pl-5">
+          <li>
+            Open this site in <span className="font-semibold">Safari</span>
+          </li>
+          <li className="flex items-start gap-1">
+            <span className="mt-0.5">Tap the</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2 py-0.5 text-xs ring-1 ring-white/10">
+              <Image src="/share.svg" width={12} height={12} alt="" />
+              Share
+            </span>
+            <span className="mt-0.5">button</span>
+          </li>
+          <li>
+            Select{" "}
+            <span className="rounded-full bg-[#FF7A0F]/20 px-2 py-0.5 text-xs font-semibold text-[#FF7A0F] ring-1 ring-[#FF7A0F]/30">
+              Add to Home Screen
+            </span>
+          </li>
+        </ol>
+
+        <div className="mt-2 rounded-xl bg-black/30 p-3 text-xs text-zinc-400 ring-1 ring-white/10">
+          <span className="font-semibold">Note:</span> This feature is not
+          available in Chrome or other iOS browsers.
+        </div>
+      </div>
+    </GlowCard>
   );
 }

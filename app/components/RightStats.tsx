@@ -7,9 +7,9 @@ export default function RightStats({
   nextBlock = 50,
   currentBlock = 49,
   globalPills = 12324,
-  barImageSrc = "/bar.png", // image exportée (barre) bloc 1
-  currentBlockImageSrc = "/block.png", // image décorative bloc 2
-  pillRankSrc = "/rankpill.png", // pilule bloc 3
+  barImageSrc = "/bar.png", // (non utilisé ici, tu peux l'enlever si tu veux)
+  currentBlockImageSrc = "/block.png",
+  pillRankSrc = "/rankpill.png",
 }: {
   nextBlock?: number;
   currentBlock?: number;
@@ -19,9 +19,7 @@ export default function RightStats({
   pillRankSrc?: string;
 }) {
   return (
-    // plus d’espace entre les cartes pour éviter que les halos se marchent dessus
     <aside className="flex flex-col gap-6">
-      {/* Bloc 1 */}
       {/* Bloc 1 */}
       <CardBase glow="orange">
         <p className="text-sm text-zinc-300">Next Pill Block:</p>
@@ -30,11 +28,14 @@ export default function RightStats({
         </p>
 
         <div className="mt-4 w-full">
-          <ImageStripScroller
+          {/* 👇 bande qui défile en BOUCLE (sans trou, sans étirement) */}
+          <BackgroundStripScroller
             src="/trackpill.png"
             stripWidth={24000}
             stripHeight={32}
-            displayHeight={48}
+            displayHeight={48} // EXACTEMENT la même hauteur qu’avant
+            speedPps={120} // pixels/seconde (dans les pixels RENDUS)
+            direction="rtl" // "rtl" (droite→gauche) ou "ltr"
           />
         </div>
       </CardBase>
@@ -87,12 +88,7 @@ export default function RightStats({
   );
 }
 
-/* ---------- Building blocks ---------- */
-
-// Aura floue douce + anneau coloré autour de la carte.
-// Isolation pour que les blurs ne se mélangent pas entre cartes.
-// --- CardBase : glow uniquement au hover, carte par carte ---
-// --- CardBase : base glow réduit, hover fortement accentué (carte par carte) ---
+/* ---------- CardBase (glow) ---------- */
 function CardBase({
   children,
   glow = "orange",
@@ -101,216 +97,112 @@ function CardBase({
   glow?: "orange" | "white";
 }) {
   const isOrange = glow === "orange";
-  const ringBase = isOrange ? "ring-[#FF66001f]" : "ring-white/20"; // base très discret
-  const ringHover = isOrange ? "hover:ring-[#FF6600]" : "hover:ring-white/80";
   const auraColor = isOrange ? "#FF6600" : "#FFFFFF";
+  const ringBase = isOrange ? "ring-[#FF66001f]" : "ring-white/20";
+  const ringHover = isOrange
+    ? "hover:ring-[#FF6600]/80"
+    : "hover:ring-white/90";
+  const baseShadow = isOrange
+    ? "shadow-[0_0_12px_#ff660026,0_0_28px_#ff660014]"
+    : "shadow-[0_0_10px_#ffffff22,0_0_22px_#ffffff10]";
   const hoverShadow = isOrange
-    ? "hover:shadow-[0_0_22px_#ff66004d,0_0_48px_#ff660026]"
-    : "hover:shadow-[0_0_18px_#ffffff40,0_0_36px_#ffffff1f]";
+    ? "hover:shadow-[0_0_24px_#ff66004d,0_0_52px_#ff66002e]"
+    : "hover:shadow-[0_0_20px_#ffffff4d,0_0_44px_#ffffff26]";
 
   return (
     <div className="relative isolate">
-      {/* La carte est la "peer" ; l'aura (en dessous) réagit à son hover */}
       <div
         className={[
           "relative h-48 rounded-xl bg-[#0c0c0c] p-6",
           "flex flex-col items-center justify-center text-center",
-          "peer transition-all duration-300", // animations douces
+          "peer transition-all duration-300",
           "ring-1",
           ringBase,
           ringHover,
+          baseShadow,
           hoverShadow,
           "motion-safe:hover:-translate-y-0.5",
+          "will-change-transform will-change-shadow",
         ].join(" ")}
       >
         {children}
       </div>
 
-      {/* Aura derrière la carte : faible au repos, forte au hover */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-1 -z-10 rounded-2xl opacity-10 blur-xl transition-opacity duration-300 peer-hover:opacity-30"
-        style={{ background: auraColor, filter: "saturate(1.05)" }}
+        className="pointer-events-none absolute -inset-1 -z-10 rounded-2xl opacity-16 blur-xl transition-opacity duration-300 peer-hover:opacity-40"
+        style={{ background: auraColor, filter: "saturate(2)" }}
       />
     </div>
   );
 }
 
-/* ---------- Progress bar (image nette & large pour éviter le flou) ---------- */
-function ProgressImageBar({ imageSrc }: { imageSrc: string }) {
-  return (
-    <div className="relative w-full select-none">
-      <Image
-        src={imageSrc}
-        alt="progress bar"
-        width={2400} // source HD pour garder la netteté
-        height={200}
-        className="w-full h-8 object-cover pointer-events-none" // un peu plus haute pour être bien lisible
-        priority
-      />
-    </div>
-  );
-}
-
+/* ---------- Bande infinie via background-repeat (solution robuste) ---------- */
 /**
- * Scroller ultra simple d’une grande image horizontale.
- * - `src`: image longue exportée de Figma (toute la ligne)
- * - `stripWidth`/`stripHeight`: dimensions réelles de l’image
- * - `displayHeight`: hauteur d’affichage dans la carte (px)
- * - `rounded`, `bg`: look du conteneur
+ * On n'utilise PAS <Image> pour animer : on s'appuie sur
+ * - background-image: url(src)
+ * - background-repeat: repeat-x
+ * - background-size: auto {displayHeight}px  (=> aucun étirement, ratio 1:1 rendu)
+ * - animation CSS sur background-position-x pour une boucle parfaite.
+ *
+ * Avantages :
+ * - Jamais de "trou" : le repeat-x garantit la continuité.
+ * - Zéro blur/étirement : on force la hauteur rendue (displayHeight) et la largeur suit le ratio.
+ * - Perf lisse (animation CSS, pas de JS à chaque frame).
  */
-function ImageStripScroller({
+function BackgroundStripScroller({
   src,
   stripWidth,
   stripHeight,
   displayHeight = 48,
-  loop = false, // 👉 passe à true pour du scroll infini
+  speedPps = 120, // vitesse en pixels RENDUS / seconde
+  direction = "rtl", // "rtl" = défilement vers la gauche visuellement
 }: {
   src: string;
-  stripWidth: number;
-  stripHeight: number;
+  stripWidth: number; // largeur source (utilisé seulement pour calcul de durée)
+  stripHeight: number; // hauteur source
   displayHeight?: number;
-  loop?: boolean;
+  speedPps?: number;
+  direction?: "ltr" | "rtl";
 }) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const [x, setX] = React.useState(0); // position horizontale virtuelle (px)
-  const [vw, setVw] = React.useState(0); // largeur visible du conteneur
+  // largeur RENDUE d'une période visuelle à h = displayHeight
+  const scale = displayHeight / stripHeight;
+  const tileW = stripWidth * scale; // largeur rendue d'UNE répétition
+  const secsPerTile = tileW / Math.max(1, speedPps); // durée pour "parcourir" une tuile
 
-  // mesure la largeur du conteneur pour calculer les bornes
-  React.useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const update = () => setVw(el.clientWidth);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const clamp = React.useCallback(
-    (val: number) => {
-      const max = Math.max(0, stripWidth - vw);
-      return Math.min(Math.max(0, val), max);
-    },
-    [stripWidth, vw]
-  );
-
-  // drag (pointer events)
-  const dragging = React.useRef(false);
-  const startX = React.useRef(0);
-  const startScroll = React.useRef(0);
-
-  const onPointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
-    const el = containerRef.current;
-    if (!el) return;
-    dragging.current = true;
-    startX.current = e.clientX;
-    startScroll.current = x;
-    el.setPointerCapture?.(e.pointerId);
-  };
-
-  const onPointerMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
-    if (!dragging.current) return;
-    const dx = e.clientX - startX.current;
-    setX((prev) =>
-      loop ? startScroll.current - dx : clamp(startScroll.current - dx)
-    );
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const endDrag: React.PointerEventHandler<HTMLDivElement> = (e) => {
-    const el = containerRef.current;
-    dragging.current = false;
-    try {
-      el?.releasePointerCapture?.(e.pointerId);
-    } catch {}
-  };
-
-  // molette / trackpad (clampé ou infini)
-  const onWheel: React.WheelEventHandler<HTMLDivElement> = (e) => {
-    // horizontal si dispo, sinon on utilise deltaY
-    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    setX((prev) => (loop ? prev + delta : clamp(prev + delta)));
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  // conteneur (aucun scroll natif → pas d’overscroll possible)
-  const containerStyle: React.CSSProperties = {
-    overflow: "hidden",
-    touchAction: "pan-x",
-    WebkitOverflowScrolling: "auto",
-    overscrollBehaviorX: "contain",
-    overscrollBehaviorY: "none",
-  };
-
-  if (!loop) {
-    // --- MODE CLAMP: on translate l’unique image, bornée 0..max ---
-    const trackStyle: React.CSSProperties = {
-      width: `${stripWidth}px`,
-      height: `${displayHeight}px`,
-      transform: `translateX(-${x}px)`,
-      willChange: "transform",
-    };
-
-    return (
-      <div
-        ref={containerRef}
-        className="relative w-full"
-        style={containerStyle}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        onWheel={onWheel}
-      >
-        <div className="relative" style={trackStyle}>
-          <Image
-            src={src}
-            alt="Pill track"
-            width={stripWidth}
-            height={stripHeight}
-            className="block h-full w-auto select-none pointer-events-none"
-            priority
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // --- MODE INFINI: on duplique l’image et on wrap avec modulo ---
-  const norm = ((x % stripWidth) + stripWidth) % stripWidth; // offset [0..stripWidth)
-  const copies = Math.max(3, Math.ceil(vw / stripWidth) + 2); // assez d’images pour couvrir
+  // clé d'anim unique pour éviter les collisions CSS si plusieurs instances
+  const animName = React.useId().replace(/[:]/g, "_") + "_marquee";
+  const fromPos = "0px";
+  const toPos = (direction === "rtl" ? -tileW : tileW) + "px";
 
   return (
     <div
-      ref={containerRef}
       className="relative w-full"
-      style={containerStyle}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-      onWheel={onWheel}
+      style={{ height: `${displayHeight}px`, overflow: "hidden" }}
     >
-      <div className="relative" style={{ height: `${displayHeight}px` }}>
-        {Array.from({ length: copies }).map((_, i) => {
-          const left = i * stripWidth - norm - stripWidth; // commence une image “en amont”
-          return (
-            <Image
-              key={i}
-              src={src}
-              alt={`Pill track ${i}`}
-              width={stripWidth}
-              height={stripHeight}
-              className="absolute top-0 block h-full w-auto select-none pointer-events-none"
-              style={{ left: `${left}px` }}
-              priority={i < 2}
-            />
-          );
-        })}
-      </div>
+      <div
+        className="h-full w-full"
+        style={{
+          backgroundImage: `url(${src})`,
+          backgroundRepeat: "repeat-x",
+          backgroundPositionX: "0px",
+          backgroundPositionY: "center",
+          backgroundSize: `auto ${displayHeight}px`, // hauteur FIXE → pas d'étirement
+          animation: `${animName} ${secsPerTile}s linear infinite`,
+          willChange: "background-position-x",
+        }}
+      />
+      {/* Animation CSS dédiée à CETTE instance */}
+      <style jsx>{`
+        @keyframes ${animName} {
+          from {
+            background-position-x: ${fromPos};
+          }
+          to {
+            background-position-x: ${toPos};
+          }
+        }
+      `}</style>
     </div>
   );
 }
