@@ -98,7 +98,7 @@ export default function Cup({
 
   const targetSpriteCount = Math.min(48, Math.max(10, Math.floor(pills / 28)));
 
-  /* ---------------------- Responsive presets (plus petits) ---------------------- */
+  /* ---------------------- Responsive (spécifique "windowed") ---------------------- */
   const computeResponsive = React.useCallback((): ResponsiveState => {
     if (typeof window === "undefined") {
       return {
@@ -111,11 +111,14 @@ export default function Cup({
         },
       };
     }
-    const w = window.innerWidth;
-    const h = window.innerHeight;
 
-    // largeur de base + insets (plus agressifs)
-    let maxWidthPx: number;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Fenêtre "windowed" typique (Mac 24" ou équivalent)
+    const isWindowed24Like = vw >= 1200 && vw <= 1750 && vh >= 700 && vh <= 980;
+
+    let maxWidthPx = 540;
     let insets: Insets = {
       left: maskInsetLeftCss,
       right: maskInsetRightCss,
@@ -123,54 +126,43 @@ export default function Cup({
       bottom: maskInsetBottomCss,
     };
 
-    // Presets spécifiques
-    if (w >= 2560) {
+    if (isWindowed24Like) {
+      maxWidthPx = 420;
+      insets = { left: 22, right: 60, top: 20, bottom: 60 };
+    } else if (vw >= 2560) {
       maxWidthPx = 600;
       insets = { left: 24, right: 72, top: 12, bottom: 72 };
-    } else if (w >= 1920) {
+    } else if (vw >= 1920) {
       maxWidthPx = 540;
       insets = { left: 24, right: 70, top: 12, bottom: 70 };
-    } else if (w >= 1600) {
-      maxWidthPx = 520;
+    } else if (vw >= 1600) {
+      maxWidthPx = 500;
       insets = { left: 26, right: 78, top: 12, bottom: 72 };
-    } else if (w === 1440 && h === 900) {
-      maxWidthPx = 480;
+    } else if (vw === 1440 && vh === 900) {
+      maxWidthPx = 460;
       insets = { left: 22, right: 62, top: 16, bottom: 62 };
-    } else if (w === 1440 && h === 800) {
+    } else if (vw === 1440 && vh === 800) {
       maxWidthPx = 440;
-      insets = { left: 20, right: 60, top: 40, bottom: 60 }; // spécial
-    } else if (
-      (w === 1366 && h === 768) ||
-      (w >= 1360 && w < 1440 && h <= 800)
-    ) {
+      insets = { left: 20, right: 60, top: 40, bottom: 60 };
+    } else if (vw >= 1360 && vw < 1440) {
       maxWidthPx = 420;
       insets = { left: 22, right: 60, top: 22, bottom: 60 };
-    } else if (w >= 1280 && w < 1360) {
+    } else if (vw >= 1280 && vw < 1360) {
       maxWidthPx = 400;
       insets = { left: 22, right: 60, top: 20, bottom: 60 };
-    } else if (w >= 1024 && w < 1280) {
+    } else if (vw >= 1024 && vw < 1280) {
       maxWidthPx = 360;
       insets = { left: 20, right: 56, top: 18, bottom: 56 };
-    } else {
-      // fallback desktop
-      maxWidthPx = 520;
-      insets = {
-        left: maskInsetLeftCss,
-        right: maskInsetRightCss,
-        top: maskInsetTopCss,
-        bottom: maskInsetBottomCss,
-      };
     }
 
-    // Cap par hauteur visible (écrans "plats") : on garde ~88% de la hauteur
-    const ratio = vbWidth / vbHeight; // l: h
-    const maxWidthByHeight = Math.floor(h * 0.88 * ratio);
-    if (maxWidthByHeight < maxWidthPx) {
-      maxWidthPx = maxWidthByHeight;
-      // quand on réduit par la hauteur, resserre un peu les insets pour éviter les débords visuels
+    // Cap par hauteur visible (~84%)
+    const ratio = vbWidth / vbHeight;
+    const capByHeight = Math.floor(vh * 0.84 * ratio);
+    if (capByHeight > 0 && capByHeight < maxWidthPx) {
+      maxWidthPx = capByHeight;
       insets = {
-        left: Math.max(16, insets.left - 4),
-        right: Math.max(48, insets.right - 6),
+        left: Math.max(16, insets.left - 2),
+        right: Math.max(48, insets.right - 4),
         top: Math.max(10, insets.top - 2),
         bottom: Math.max(50, insets.bottom - 4),
       };
@@ -192,7 +184,13 @@ export default function Cup({
     const onResize = () => setResp(computeResponsive());
     onResize();
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    document.addEventListener("fullscreenchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      document.removeEventListener("fullscreenchange", onResize);
+    };
   }, [computeResponsive]);
 
   /* ---------------------- Mask build ---------------------- */
@@ -203,7 +201,7 @@ export default function Cup({
 
     const rect = container.getBoundingClientRect();
     const Wcss = rect.width;
-    const Hcss = rect.height;
+    const Hcss = rect.height; // <-- FIX: plus de "the"
     if (Wcss <= 0 || Hcss <= 0) return;
 
     const dpr = window.devicePixelRatio || 1;
@@ -219,7 +217,9 @@ export default function Cup({
     pxPerCssXRef.current = pxPerCssX;
     pxPerCssYRef.current = pxPerCssY;
 
+    // repère CSS → device px
     ctx.setTransform(pxPerCssX, 0, 0, pxPerCssY, 0, 0);
+    // SVG viewBox → CSS box
     ctx.scale(Wcss / vbWidth, Hcss / vbHeight);
 
     const insetL = (resp.insets.left * vbWidth) / Wcss;
@@ -279,6 +279,11 @@ export default function Cup({
   React.useEffect(() => {
     loadMaskImage();
   }, [loadMaskImage]);
+
+  // Rebuild si les insets changent (sans nouveau resize)
+  React.useEffect(() => {
+    if (maskImageRef.current) rebuildMaskCanvas();
+  }, [rebuildMaskCanvas]);
 
   /* ---------------------- Pills inside mask ---------------------- */
   const isPointAllowed = React.useCallback((x: number, y: number): boolean => {
@@ -510,12 +515,11 @@ export default function Cup({
               <>
                 {showYourPillsTitle && (
                   <div className="mb-4 text-4xl">
-                    {" "}
                     <NextImage
                       src={"/title.png"}
                       alt="Your Pills"
-                      width={300}
-                      height={300}
+                      width={250}
+                      height={250}
                       className="object-contain"
                     />
                   </div>

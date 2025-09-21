@@ -1,7 +1,19 @@
 "use client";
 import * as React from "react";
 
-export default function RankCard({ myRank = 5 }: { myRank?: number }) {
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+export default function RankCard({
+  myRank = 5,
+  connected,
+}: {
+  myRank?: number;
+  connected: boolean;
+}) {
   return (
     <div className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-5">
       <div className="mb-2 flex items-center gap-2">
@@ -13,25 +25,26 @@ export default function RankCard({ myRank = 5 }: { myRank?: number }) {
           <path d="M3 4h18v2H3zm3 4h12v2H6zm-3 4h18v2H3zm3 4h12v2H6z" />
         </svg>
         <p className="text-base font-semibold">Your Rank:</p>
+        {!connected && (
+          <span className="ml-2 rounded-full bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-zinc-300 ring-1 ring-white/10">
+            Locked
+          </span>
+        )}
       </div>
-      <p className="text-6xl font-extrabold leading-none tracking-tight text-white">
-        {ordinal(myRank).toUpperCase()}
-      </p>
+
+      {connected ? (
+        <p className="text-6xl font-extrabold leading-none tracking-tight text-white">
+          {ordinal(myRank).toUpperCase()}
+        </p>
+      ) : (
+        <>
+          {/* Placeholder visuel du rang masqué */}
+          <div className="h-12 w-40 rounded-lg bg-white/5 ring-1 ring-white/10" />
+          <p className="mt-3 text-sm text-zinc-400">
+            Connect your wallet in the bottle to view your rank.
+          </p>
+        </>
+      )}
     </div>
   );
-}
-
-function ordinal(n: number) {
-  const v = n % 100;
-  if (v >= 11 && v <= 13) return `${n}th`;
-  switch (n % 10) {
-    case 1:
-      return `${n}st`;
-    case 2:
-      return `${n}nd`;
-    case 3:
-      return `${n}rd`;
-    default:
-      return `${n}th`;
-  }
 }

@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 
+import Navbar from "./components/Navbar";
 import Leaderboard, { type Leader } from "./components/Leaderboard";
 import LeaderboardModal from "./components/LeaderboardModal";
 import RightStats from "./components/RightStats";
@@ -22,66 +23,58 @@ const leaders: Leader[] = [
   { addr: "bc1extra002", score: 650 },
 ];
 
-/* Dummys mobile */
-const MOBILE_DUMMY = {
-  nextPillBlocks: 5,
-  currentBlock: 915_586,
-  globalPills: 10_367,
-};
-
-/* Utils */
-const nf = new Intl.NumberFormat("en-US");
-function formatNumber(n: number) {
-  return nf.format(n);
-}
-
-/* ---------------------------------- Page ---------------------------------- */
 export default function Page() {
   const [connected, setConnected] = React.useState(false);
+  const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
 
   const [leaderboardOpen, setLeaderboardOpen] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [aboutOpen, setAboutOpen] = React.useState(false);
 
+  const handleToggleConnect = () => {
+    setConnected((prev) => {
+      const next = !prev;
+      // Adresse factice pour la démo
+      setWalletAddress(next ? "bc1p7w69r4jv0xyzq9...h3a" : null);
+      return next;
+    });
+  };
+
   return (
-    <main className="relative h-dvh w-full bg-black text-white overflow-y-auto lg:overflow-hidden">
+    <main className="relative h-dvh w-full overflow-y-auto bg-black text-white lg:overflow-hidden">
       {/* ============================== MOBILE ============================== */}
       <section className="lg:hidden">
-        <header className="flex flex-col justify-center items-center px-6 pt-8 pb-4 text-center">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-extrabold">Orange Pill</h1>
-            <Image
-              src={"/orangepill.png"}
-              alt="OrangePill Logo"
-              width={48}
-              height={48}
-            />
-          </div>
+        {/* Header mobile (centré) */}
+        <header className="px-6 pt-8 pb-4 text-center">
+          <h1 className="text-3xl font-extrabold">Orange Pill</h1>
           <div className="mx-auto mt-2 h-1 w-20 rounded-full bg-[#FF7A0F]" />
         </header>
 
+        {/* Banner: take the pill on PC */}
+        <div className="px-4">
+          <DesktopBannerCTA />
+        </div>
+
+        {/* Cartes */}
         <div className="space-y-4 px-4 pb-24 pt-4">
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Next Pill Block</p>
             <p className="mt-1 text-2xl font-extrabold text-[#FF7A0F]">
-              {formatNumber(MOBILE_DUMMY.nextPillBlocks)}{" "}
-              <span className="font-bold">blocks</span>
+              5 <span className="font-bold">blocks</span>
             </p>
           </GlowCard>
 
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Current Block</p>
             <p className="mt-1 text-3xl font-extrabold tracking-tight">
-              {formatNumber(MOBILE_DUMMY.currentBlock)}
+              915,586
             </p>
           </GlowCard>
 
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Global Pills</p>
             <div className="mt-1 flex items-center gap-2">
-              <p className="text-3xl font-extrabold tracking-tight">
-                {formatNumber(MOBILE_DUMMY.globalPills)}
-              </p>
+              <p className="text-3xl font-extrabold tracking-tight">10,367</p>
               <Image
                 src="/orangepill.png"
                 alt="pill"
@@ -93,13 +86,10 @@ export default function Page() {
             </div>
           </GlowCard>
 
-          <div>
-            <DesktopBannerCTA />
-          </div>
-
           <NotificationsCard />
         </div>
 
+        {/* mini footer bar orange */}
         <footer className="fixed inset-x-0 bottom-0 h-6 bg-[#FF7A0F]" />
       </section>
 
@@ -107,9 +97,15 @@ export default function Page() {
       <section className="hidden h-full flex-col lg:flex">
         <Navbar
           onOpenAbout={() => setAboutOpen(true)}
-          isWalletConnected={connected}
+          connected={connected}
+          walletAddress={walletAddress ?? undefined}
+          onDisconnect={() => {
+            setConnected(false);
+            setWalletAddress(null);
+          }}
         />
 
+        {/* GRID (one-screen, no scroll) */}
         <section
           className="
             grid h-[calc(100dvh-120px)] w-full
@@ -117,21 +113,25 @@ export default function Page() {
             items-center gap-4 px-14
           "
         >
+          {/* LEFT */}
           <aside className="flex flex-col gap-4">
             <Leaderboard
               leaders={leaders}
               activeIndex={4}
               onOpen={() => setLeaderboardOpen(true)}
             />
-            <RankCard myRank={5} />
+            <RankCard myRank={5} connected={connected} />
           </aside>
 
+          {/* CENTER (Cup) */}
           <Cup
             connected={connected}
-            onToggleConnect={() => setConnected((s) => !s)}
+            onToggleConnect={handleToggleConnect}
             onOpenSettings={() => setSettingsOpen(true)}
+            // showYourPillsTitle={true} // si tu veux afficher l'image de titre interne
           />
 
+          {/* RIGHT (stats inside a container bg) */}
           <aside className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-3">
             <RightStats
               nextBlock={50}
@@ -144,6 +144,7 @@ export default function Page() {
           </aside>
         </section>
 
+        {/* FOOTER */}
         <footer className="pointer-events-none absolute inset-x-0 bottom-0">
           <div className="flex h-6 items-center justify-end bg-[#FF7A0F] pr-6 text-[10px] font-bold tracking-wide text-black">
             ORANGE PILL, 2025, ALL RIGHTS RESERVED
@@ -163,83 +164,6 @@ export default function Page() {
       />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </main>
-  );
-}
-
-/* -------------------------------- NAVBAR --------------------------------- */
-function Navbar({
-  onOpenAbout,
-  isWalletConnected = false,
-}: {
-  onOpenAbout: () => void;
-  isWalletConnected?: boolean;
-}) {
-  const circle =
-    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-[#FF6600]/80 hover:text-white transition";
-  const ovalBase =
-    "flex items-center justify-center rounded-full h-12 px-6 text-sm font-semibold uppercase tracking-wide border transition";
-  const ovalIdle =
-    "bg-zinc-900 text-white border-white/10 hover:bg-[#FF6600] hover:text-white";
-  const ovalActive =
-    "bg-[#FF6600] text-white border-[#FF6600] shadow-[0_0_10px_#ff660055,0_0_24px_#ff660033]";
-
-  return (
-    <nav className="flex w-full items-center justify-between px-16 py-6">
-      <div className="flex items-center gap-4">
-        <a href="#" className={`${circle} size-14`} aria-label="Home">
-          <Image
-            src="/orangepill.png"
-            width={40}
-            height={40}
-            alt="OrangePill Logo"
-            className="object-contain"
-            priority
-          />
-        </a>
-
-        <a
-          href="#"
-          aria-current={isWalletConnected ? "page" : undefined}
-          className={`${ovalBase} ${isWalletConnected ? ovalActive : ovalIdle}`}
-        >
-          Dashboard
-        </a>
-
-        <button
-          onClick={onOpenAbout}
-          className={`${ovalBase} ${ovalIdle} cursor-pointer`}
-        >
-          What is OrangePill?
-        </button>
-
-        <a
-          href="https://ordinals.com/"
-          target="_blank"
-          rel="noreferrer"
-          className={`${ovalBase} ${ovalIdle}`}
-        >
-          OrdiScan
-          <div className="ml-1">
-            <Image src={"/view.svg"} width={12} height={12} alt="" />
-          </div>
-        </a>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <a href="#" className={`${circle} size-10`} aria-label="Discord">
-          <Image src="/discord.svg" width={20} height={20} alt="" />
-        </a>
-        <a href="#" className={`${circle} size-10`} aria-label="X">
-          <Image src="/x.svg" width={20} height={20} alt="" />
-        </a>
-        <a href="#" className={`${circle} size-10`} aria-label="Bell">
-          <Image src="/bell.svg" width={20} height={20} alt="" />
-        </a>
-        <a href="#" className={`${circle} size-10`} aria-label="Wallet">
-          <Image src="/wallet.svg" width={20} height={20} alt="" />
-        </a>
-      </div>
-    </nav>
   );
 }
 
@@ -285,6 +209,7 @@ function GlowCard({
         {children}
       </div>
 
+      {/* Aura */}
       <div
         aria-hidden
         className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl opacity-20 blur-xl transition-opacity duration-300"
@@ -311,7 +236,7 @@ function DesktopBannerCTA() {
   };
 
   return (
-    <GlowCard color="orange" className="border rounded-xl border-orange-500">
+    <GlowCard color="orange" className="border border-white/1">
       <div className="flex items-start gap-3">
         <div className="flex size-10 items-center justify-center rounded-xl bg-[#FF7A0F]/15 ring-1 ring-[#FF7A0F]/30">
           <Image src="/desktop.png" width={28} height={28} alt="" />
@@ -321,7 +246,6 @@ function DesktopBannerCTA() {
             For the full experience, take the pill on{" "}
             <span className="text-[#FF7A0F]">desktop</span>.
           </p>
-
           <div className="mt-3 flex items-center gap-2">
             <button
               onClick={copy}
@@ -355,15 +279,14 @@ function NotificationsCard() {
           <li className="flex items-start gap-1">
             <span className="mt-0.5">Tap the</span>
             <span className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2 py-0.5 text-xs ring-1 ring-white/10">
-              <Image src="/share.svg" width={18} height={18} alt="" />
+              <Image src="/share.svg" width={12} height={12} alt="" />
               Share
             </span>
             <span className="mt-0.5">button</span>
           </li>
-          <li className="flex items-start gap-1">
+          <li>
             Select{" "}
-            <span className="flex gap-2 rounded-full bg-[#FF7A0F]/20 px-2 py-0.5 text-xs font-semibold text-[#FF7A0F] ring-1 ring-[#FF7A0F]/30">
-              <Image src={"/plus.svg"} width={18} height={18} alt="" />
+            <span className="rounded-full bg-[#FF7A0F]/20 px-2 py-0.5 text-xs font-semibold text-[#FF7A0F] ring-1 ring-[#FF7A0F]/30">
               Add to Home Screen
             </span>
           </li>
