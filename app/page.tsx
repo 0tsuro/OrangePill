@@ -278,11 +278,11 @@ function Navbar({
           onClick={onOpenAbout}
           className={`${ovalBase} ${ovalIdle} cursor-pointer`}
         >
-          What is OrangePill?
+          What is Orange Pill?
         </button>
 
         <a
-          href="https://ordinals.com/"
+          href="/#"
           target="_blank"
           rel="noreferrer"
           className={`${ovalBase} ${ovalIdle}`}

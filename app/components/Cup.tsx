@@ -2,6 +2,9 @@
 import * as React from "react";
 import NextImage from "next/image";
 
+type Insets = { left: number; right: number; top: number; bottom: number };
+type ResponsiveState = { maxWidthPx: number; insets: Insets };
+
 type CupProps = {
   connected: boolean;
   onToggleConnect: () => void;
@@ -24,16 +27,12 @@ type CupProps = {
   imgOffsetY?: number;
   imgScale?: number;
 
-  /** micro-corrections en px CSS pour gommer l’écart à droite/bas (valeurs défaut) */
   maskInsetLeftCss?: number;
   maskInsetRightCss?: number;
   maskInsetTopCss?: number;
   maskInsetBottomCss?: number;
 
-  /** Remonte visuellement le bloc sans affecter la logique */
   cupLiftPx?: number;
-
-  /** Permet de masquer le titre interne pour éviter les doublons */
   showYourPillsTitle?: boolean;
 };
 
@@ -46,9 +45,6 @@ type Pill = {
   w: number;
   h: number;
 };
-
-type Insets = { left: number; right: number; top: number; bottom: number };
-type ResponsiveState = { maxWidthPx: number; insets: Insets };
 
 export default function Cup({
   connected,
@@ -78,7 +74,6 @@ export default function Cup({
   maskInsetBottomCss = 70,
 
   cupLiftPx = 24,
-
   showYourPillsTitle = true,
 }: CupProps) {
   const [pills] = React.useState(initialPills);
@@ -98,11 +93,11 @@ export default function Cup({
 
   const targetSpriteCount = Math.min(48, Math.max(10, Math.floor(pills / 28)));
 
-  /* ---------------------- Responsive (spécifique "windowed") ---------------------- */
+  /* ---------------------- Responsive (incl. 24" windowed) ---------------------- */
   const computeResponsive = React.useCallback((): ResponsiveState => {
     if (typeof window === "undefined") {
       return {
-        maxWidthPx: 500,
+        maxWidthPx: 520,
         insets: {
           left: maskInsetLeftCss,
           right: maskInsetRightCss,
@@ -111,14 +106,10 @@ export default function Cup({
         },
       };
     }
+    const w = window.innerWidth;
+    const h = window.innerHeight;
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    // Fenêtre "windowed" typique (Mac 24" ou équivalent)
-    const isWindowed24Like = vw >= 1200 && vw <= 1750 && vh >= 700 && vh <= 980;
-
-    let maxWidthPx = 540;
+    let maxWidthPx: number;
     let insets: Insets = {
       left: maskInsetLeftCss,
       right: maskInsetRightCss,
@@ -126,43 +117,46 @@ export default function Cup({
       bottom: maskInsetBottomCss,
     };
 
-    if (isWindowed24Like) {
-      maxWidthPx = 420;
-      insets = { left: 22, right: 60, top: 20, bottom: 60 };
-    } else if (vw >= 2560) {
+    if (w >= 2560) {
       maxWidthPx = 600;
       insets = { left: 24, right: 72, top: 12, bottom: 72 };
-    } else if (vw >= 1920) {
+    } else if (w >= 1920) {
       maxWidthPx = 540;
       insets = { left: 24, right: 70, top: 12, bottom: 70 };
-    } else if (vw >= 1600) {
-      maxWidthPx = 500;
+    } else if (w >= 1600) {
+      maxWidthPx = 520;
       insets = { left: 26, right: 78, top: 12, bottom: 72 };
-    } else if (vw === 1440 && vh === 900) {
-      maxWidthPx = 460;
-      insets = { left: 22, right: 62, top: 16, bottom: 62 };
-    } else if (vw === 1440 && vh === 800) {
-      maxWidthPx = 440;
-      insets = { left: 20, right: 60, top: 40, bottom: 60 };
-    } else if (vw >= 1360 && vw < 1440) {
+    } else if (w === 1440 && (h === 900 || h === 800)) {
+      // 24" windowed
+      maxWidthPx = h === 800 ? 440 : 480;
+      insets =
+        h === 800
+          ? { left: 20, right: 60, top: 40, bottom: 60 }
+          : { left: 22, right: 62, top: 16, bottom: 62 };
+    } else if (
+      (w >= 1360 && w < 1440 && h <= 800) ||
+      (w === 1366 && h === 768)
+    ) {
       maxWidthPx = 420;
       insets = { left: 22, right: 60, top: 22, bottom: 60 };
-    } else if (vw >= 1280 && vw < 1360) {
+    } else if (w >= 1280 && w < 1360) {
       maxWidthPx = 400;
       insets = { left: 22, right: 60, top: 20, bottom: 60 };
-    } else if (vw >= 1024 && vw < 1280) {
+    } else if (w >= 1024 && w < 1280) {
       maxWidthPx = 360;
       insets = { left: 20, right: 56, top: 18, bottom: 56 };
+    } else {
+      maxWidthPx = 520;
     }
 
-    // Cap par hauteur visible (~84%)
+    // cap à la hauteur visible (~88% de h)
     const ratio = vbWidth / vbHeight;
-    const capByHeight = Math.floor(vh * 0.84 * ratio);
-    if (capByHeight > 0 && capByHeight < maxWidthPx) {
-      maxWidthPx = capByHeight;
+    const maxWidthByHeight = Math.floor(h * 0.88 * ratio);
+    if (maxWidthByHeight < maxWidthPx) {
+      maxWidthPx = maxWidthByHeight;
       insets = {
-        left: Math.max(16, insets.left - 2),
-        right: Math.max(48, insets.right - 4),
+        left: Math.max(16, insets.left - 4),
+        right: Math.max(48, insets.right - 6),
         top: Math.max(10, insets.top - 2),
         bottom: Math.max(50, insets.bottom - 4),
       };
@@ -184,13 +178,7 @@ export default function Cup({
     const onResize = () => setResp(computeResponsive());
     onResize();
     window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    document.addEventListener("fullscreenchange", onResize);
-    return () => {
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-      document.removeEventListener("fullscreenchange", onResize);
-    };
+    return () => window.removeEventListener("resize", onResize);
   }, [computeResponsive]);
 
   /* ---------------------- Mask build ---------------------- */
@@ -201,7 +189,7 @@ export default function Cup({
 
     const rect = container.getBoundingClientRect();
     const Wcss = rect.width;
-    const Hcss = rect.height; // <-- FIX: plus de "the"
+    const Hcss = rect.height;
     if (Wcss <= 0 || Hcss <= 0) return;
 
     const dpr = window.devicePixelRatio || 1;
@@ -217,9 +205,7 @@ export default function Cup({
     pxPerCssXRef.current = pxPerCssX;
     pxPerCssYRef.current = pxPerCssY;
 
-    // repère CSS → device px
     ctx.setTransform(pxPerCssX, 0, 0, pxPerCssY, 0, 0);
-    // SVG viewBox → CSS box
     ctx.scale(Wcss / vbWidth, Hcss / vbHeight);
 
     const insetL = (resp.insets.left * vbWidth) / Wcss;
@@ -280,12 +266,7 @@ export default function Cup({
     loadMaskImage();
   }, [loadMaskImage]);
 
-  // Rebuild si les insets changent (sans nouveau resize)
-  React.useEffect(() => {
-    if (maskImageRef.current) rebuildMaskCanvas();
-  }, [rebuildMaskCanvas]);
-
-  /* ---------------------- Pills inside mask ---------------------- */
+  /* ---------------------- Pills movement ---------------------- */
   const isPointAllowed = React.useCallback((x: number, y: number): boolean => {
     const canvas = maskCanvasRef.current;
     if (!canvas) return false;
@@ -311,7 +292,7 @@ export default function Cup({
 
   function rectFullyInsideMask(x: number, y: number, w: number, h: number) {
     const e = 0.5;
-    const pts = [
+    const pts: [number, number][] = [
       [x + e, y + e],
       [x + w - e, y + e],
       [x + e, y + h - e],
@@ -496,11 +477,24 @@ export default function Cup({
           )}
         </svg>
 
-        {/* UI */}
-        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-8">
-          <div className="pointer-events-auto flex flex-col items-center">
-            {!connected ? (
-              <>
+        {/* ===== UI : deux panneaux superposés, fade simple, clic garanti ===== */}
+        <div className="absolute inset-0 z-10 flex items-center justify-center px-8">
+          <div
+            className="relative w-full"
+            style={{
+              maxWidth: 520,
+              minHeight: 260, // réserve -> évite le “jump”
+            }}
+          >
+            {/* Panneau NON CONNECTÉ */}
+            <div
+              className={[
+                "absolute inset-0 grid place-items-center transition-opacity duration-200 ease-out",
+                connected ? "opacity-0" : "opacity-100",
+              ].join(" ")}
+              style={{ pointerEvents: connected ? "none" : "auto" }}
+            >
+              <div className="flex flex-col items-center">
                 <button
                   onClick={onToggleConnect}
                   className="cursor-pointer mb-7 rounded-xl bg-[#FF6600] px-6 py-2.5 text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
@@ -510,17 +504,30 @@ export default function Cup({
                 <p className="text-[13px] text-zinc-300">
                   Connect Your Wallet to Claim Pills!
                 </p>
-              </>
-            ) : (
-              <>
+              </div>
+            </div>
+
+            {/* Panneau CONNECTÉ */}
+            <div
+              className={[
+                "absolute inset-0 grid place-items-center transition-opacity duration-200 ease-out",
+                connected ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+              style={{ pointerEvents: connected ? "auto" : "none" }}
+            >
+              <div className="flex flex-col items-center">
                 {showYourPillsTitle && (
-                  <div className="mb-4 text-4xl">
+                  <div
+                    className="mb-3 grid place-items-center"
+                    style={{ height: 64 }}
+                  >
                     <NextImage
                       src={"/title.png"}
                       alt="Your Pills"
                       width={250}
                       height={250}
                       className="object-contain"
+                      priority
                     />
                   </div>
                 )}
@@ -532,12 +539,14 @@ export default function Cup({
                   Take more to climb
                   <br /> the leaderboard!
                 </p>
+
                 <button
                   onClick={onOpenSettings}
                   className="cursor-pointer mt-5 rounded-xl bg-[#FF6600] px-7 py-3 text-xl font-extrabold text-white shadow-[0_12px_28px_rgba(255,102,0,.35)] transition hover:brightness-110 active:scale-[0.98]"
                 >
                   Take Your Pill
                 </button>
+
                 <div className="mt-5 flex items-center gap-4">
                   {(["x10", "x50", "x20"] as const).map((t) => {
                     const isActive = selectedChip === t;
@@ -581,10 +590,11 @@ export default function Cup({
                     />
                   </button>
                 </div>
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </div>
+        {/* ===== /UI ===== */}
       </div>
     </div>
   );

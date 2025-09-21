@@ -16,20 +16,6 @@ type Props = {
 const nf = new Intl.NumberFormat("en-US");
 const formatNumber = (n: number) => nf.format(n);
 
-/** Facteur d’échelle visuel pour certaines tailles “windowed” courantes. */
-function computeWindowedScale(): number {
-  if (typeof window === "undefined") return 1;
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-
-  if (w === 1440 && h === 800) return 0.89;
-  if (w === 1440 && h === 900) return 0.92;
-  if (w === 1366 && h === 768) return 0.9;
-
-  if (w >= 1280 && w <= 1536 && h <= 900) return 0.94;
-  return 1;
-}
-
 export default function Leaderboard({
   leaders,
   pillIconSrc = "/trophy.svg",
@@ -46,6 +32,20 @@ export default function Leaderboard({
     if (typeof activeIndex === "number") setCurrent(activeIndex);
   }, [activeIndex]);
 
+  // ---- match RankCard width and padding in 24" windowed (1440x800/900)
+  const [padClass, setPadClass] = React.useState("p-5");
+  React.useEffect(() => {
+    const sync = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const isWindowed24 = w === 1440 && (h === 800 || h === 900);
+      setPadClass(isWindowed24 ? "p-4 pb-5" : "p-5");
+    };
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, []);
+
   const data = React.useMemo(() => {
     if (!forceScrollDemo) return leaders;
     const extras: Leader[] = [
@@ -61,23 +61,12 @@ export default function Leaderboard({
       : [...leaders, ...extras].slice(0, 12);
   }, [leaders, forceScrollDemo]);
 
-  // Responsive scale (windowed 24’’ & co)
-  const [scale, setScale] = React.useState<number>(1);
-  React.useEffect(() => {
-    const apply = () => setScale(computeWindowedScale());
-    apply();
-    window.addEventListener("resize", apply);
-    return () => window.removeEventListener("resize", apply);
-  }, []);
-
   return (
     <div
-      className="relative rounded-2xl border border-white/10 bg-[#1B1B1B] p-4 pb-5 overflow-hidden isolate shadow-[0_6px_24px_rgba(0,0,0,0.35)]"
-      style={{
-        transform: scale !== 1 ? `scale(${scale})` : undefined,
-        transformOrigin: "top left",
-        willChange: scale !== 1 ? "transform" : undefined,
-      }}
+      className={[
+        "w-full rounded-2xl border border-white/10 bg-[#1B1B1B]",
+        padClass,
+      ].join(" ")}
     >
       {/* Header */}
       <div className="mb-3 flex items-center gap-2.5">
@@ -146,7 +135,6 @@ export default function Leaderboard({
                     alt="rank pill"
                     width={26}
                     height={26}
-                    className="object-contain"
                   />
                 </div>
               </li>

@@ -78,7 +78,7 @@ export default function RightStats({
             className="font-semibold text-zinc-300 leading-none"
             style={{ fontSize: "var(--rs-titleSize)" }}
           >
-            Global Pills:
+            Total PILLS Taken:
           </p>
           <div className="mt-2 flex items-center justify-center gap-2">
             <p
