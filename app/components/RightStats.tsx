@@ -18,13 +18,77 @@ export default function RightStats({
   currentBlockImageSrc?: string;
   pillRankSrc?: string;
 }) {
+  // --------- Responsive presets (comme pour le 24" windowed) ----------
+  type RS = {
+    gapPx: number;
+    cardHeightPx: number;
+    cardPadPx: number;
+    scrollerHeightPx: number;
+    titleCls: string; // "Next Pill Block", "Current Block", "Global Pills"
+    valueCls: string; // valeurs numériques (50 / 49 / 12,324)
+  };
+
+  const compute = React.useCallback((): RS => {
+    if (typeof window === "undefined") {
+      return {
+        gapPx: 24,
+        cardHeightPx: 192, // ~ h-48
+        cardPadPx: 24, // ~ p-6
+        scrollerHeightPx: 48,
+        titleCls: "text-xl",
+        valueCls: "text-3xl",
+      };
+    }
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    // Compact pour 24" windowed (1440×800/900) et pour toutes hauteurs ≤ 900
+    const isWindowed24 =
+      w === 1440 && (h === 800 || h === 900 || (h >= 780 && h <= 920));
+    const shortHeight = h <= 900;
+
+    if (isWindowed24 || shortHeight) {
+      // un cran plus compact
+      return {
+        gapPx: 16, // moins d’espace entre cartes
+        cardHeightPx: 176, // ex: h-44
+        cardPadPx: 20, // p-5
+        scrollerHeightPx: 40, // bande un peu moins haute
+        titleCls: "text-lg",
+        valueCls: "text-2xl",
+      };
+    }
+
+    // défaut desktop
+    return {
+      gapPx: 24,
+      cardHeightPx: 192,
+      cardPadPx: 24,
+      scrollerHeightPx: 48,
+      titleCls: "text-xl",
+      valueCls: "text-3xl",
+    };
+  }, []);
+
+  const [rs, setRs] = React.useState<RS>(compute);
+  React.useEffect(() => {
+    const onR = () => setRs(compute());
+    onR();
+    window.addEventListener("resize", onR);
+    return () => window.removeEventListener("resize", onR);
+  }, [compute]);
+
   return (
     // ici: simple colonne, c’est le parent (aside dans page.tsx) qui gère le cadre
-    <aside className="flex flex-col gap-5 sm:gap-6">
+    <aside
+      className="flex flex-col"
+      style={{ gap: `${rs.gapPx}px` }}
+      aria-label="Right stats cards"
+    >
       {/* Bloc 1 */}
-      <CardBase glow="orange">
-        <p className="text-sm text-zinc-300">Next Pill Block:</p>
-        <p className="mt-2 text-3xl font-extrabold tracking-tight">
+      <CardBase glow="orange" heightPx={rs.cardHeightPx} padPx={rs.cardPadPx}>
+        <p className={`text-sm text-zinc-300`}>Next Pill Block:</p>
+        <p className={`mt-2 font-extrabold tracking-tight ${rs.valueCls}`}>
           {formatNumber(nextBlock)}
         </p>
 
@@ -34,7 +98,7 @@ export default function RightStats({
             src="/trackpill.png"
             stripWidth={24000}
             stripHeight={32}
-            displayHeight={48} // garde exactement ta hauteur d’origine
+            displayHeight={rs.scrollerHeightPx} // garde la logique, mais plus compact si besoin
             speedPps={30}
             direction="rtl"
           />
@@ -42,9 +106,11 @@ export default function RightStats({
       </CardBase>
 
       {/* Bloc 2 */}
-      <CardBase glow="orange">
-        <p className="text-xl font-semibold text-zinc-300">Current Block:</p>
-        <p className="mt-2 text-3xl font-extrabold tracking-tight">
+      <CardBase glow="orange" heightPx={rs.cardHeightPx} padPx={rs.cardPadPx}>
+        <p className={`${rs.titleCls} font-semibold text-zinc-300`}>
+          Current Block:
+        </p>
+        <p className={`mt-2 font-extrabold tracking-tight ${rs.valueCls}`}>
           {formatNumber(currentBlock)}
         </p>
 
@@ -59,10 +125,12 @@ export default function RightStats({
       </CardBase>
 
       {/* Bloc 3 */}
-      <CardBase glow="white">
-        <p className="text-xl font-semibold text-zinc-300">Global Pills:</p>
+      <CardBase glow="white" heightPx={rs.cardHeightPx} padPx={rs.cardPadPx}>
+        <p className={`${rs.titleCls} font-semibold text-zinc-300`}>
+          Global Pills:
+        </p>
         <div className="mt-2 flex items-center justify-center gap-2">
-          <p className="text-3xl font-extrabold tracking-tight">
+          <p className={`font-extrabold tracking-tight ${rs.valueCls}`}>
             {formatNumber(globalPills)}
           </p>
           <Image
@@ -83,9 +151,13 @@ export default function RightStats({
 function CardBase({
   children,
   glow = "orange",
+  heightPx = 192,
+  padPx = 24,
 }: {
   children: React.ReactNode;
   glow?: "orange" | "white";
+  heightPx?: number;
+  padPx?: number;
 }) {
   const isOrange = glow === "orange";
   const auraColor = isOrange ? "#FF6600" : "#FFFFFF";
@@ -105,7 +177,7 @@ function CardBase({
     <div className="relative isolate">
       <div
         className={[
-          "relative h-48 rounded-xl bg-[#0c0c0c] p-6",
+          "relative rounded-xl bg-[#0c0c0c]",
           "flex flex-col items-center justify-center text-center",
           "peer transition-all duration-300",
           "ring-1",
@@ -116,6 +188,7 @@ function CardBase({
           "motion-safe:hover:-translate-y-0.5",
           "will-change-transform will-change-shadow",
         ].join(" ")}
+        style={{ height: `${heightPx}px`, padding: `${padPx}px` }}
       >
         {children}
       </div>
