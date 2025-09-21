@@ -7,7 +7,7 @@ export default function RightStats({
   nextBlock = 50,
   currentBlock = 49,
   globalPills = 12324,
-  barImageSrc = "/bar.png", // non utilisé, tu peux le retirer si tu veux
+  barImageSrc = "/bar.png", // non utilisé
   currentBlockImageSrc = "/block.png",
   pillRankSrc = "/orangepill.png",
 }: {
@@ -18,132 +18,132 @@ export default function RightStats({
   currentBlockImageSrc?: string;
   pillRankSrc?: string;
 }) {
-  // --------- Responsive presets (comme pour le 24" windowed) ----------
-  type RS = {
-    gapPx: number;
-    cardHeightPx: number;
-    cardPadPx: number;
-    scrollerHeightPx: number;
-    titleCls: string; // "Next Pill Block", "Current Block", "Global Pills"
-    valueCls: string; // valeurs numériques (50 / 49 / 12,324)
-  };
-
-  const compute = React.useCallback((): RS => {
-    if (typeof window === "undefined") {
-      return {
-        gapPx: 24,
-        cardHeightPx: 192, // ~ h-48
-        cardPadPx: 24, // ~ p-6
-        scrollerHeightPx: 48,
-        titleCls: "text-xl",
-        valueCls: "text-3xl",
-      };
-    }
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-
-    // Compact pour 24" windowed (1440×800/900) et pour toutes hauteurs ≤ 900
-    const isWindowed24 =
-      w === 1440 && (h === 800 || h === 900 || (h >= 780 && h <= 920));
-    const shortHeight = h <= 900;
-
-    if (isWindowed24 || shortHeight) {
-      // un cran plus compact
-      return {
-        gapPx: 16, // moins d’espace entre cartes
-        cardHeightPx: 176, // ex: h-44
-        cardPadPx: 20, // p-5
-        scrollerHeightPx: 40, // bande un peu moins haute
-        titleCls: "text-lg",
-        valueCls: "text-2xl",
-      };
-    }
-
-    // défaut desktop
-    return {
-      gapPx: 24,
-      cardHeightPx: 192,
-      cardPadPx: 24,
-      scrollerHeightPx: 48,
-      titleCls: "text-xl",
-      valueCls: "text-3xl",
-    };
-  }, []);
-
-  const [rs, setRs] = React.useState<RS>(compute);
-  React.useEffect(() => {
-    const onR = () => setRs(compute());
-    onR();
-    window.addEventListener("resize", onR);
-    return () => window.removeEventListener("resize", onR);
-  }, [compute]);
-
   return (
-    // ici: simple colonne, c’est le parent (aside dans page.tsx) qui gère le cadre
-    <aside
-      className="flex flex-col"
-      style={{ gap: `${rs.gapPx}px` }}
-      aria-label="Right stats cards"
-    >
-      {/* Bloc 1 */}
-      <CardBase glow="orange" heightPx={rs.cardHeightPx} padPx={rs.cardPadPx}>
-        <p className={`text-sm text-zinc-300`}>Next Pill Block:</p>
-        <p className={`mt-2 font-extrabold tracking-tight ${rs.valueCls}`}>
-          {formatNumber(nextBlock)}
-        </p>
-
-        <div className="mt-4 w-full">
-          {/* bande qui défile en boucle, sans trou ni étirement */}
-          <BackgroundStripScroller
-            src="/trackpill.png"
-            stripWidth={24000}
-            stripHeight={32}
-            displayHeight={rs.scrollerHeightPx} // garde la logique, mais plus compact si besoin
-            speedPps={30}
-            direction="rtl"
-          />
-        </div>
-      </CardBase>
-
-      {/* Bloc 2 */}
-      <CardBase glow="orange" heightPx={rs.cardHeightPx} padPx={rs.cardPadPx}>
-        <p className={`${rs.titleCls} font-semibold text-zinc-300`}>
-          Current Block:
-        </p>
-        <p className={`mt-2 font-extrabold tracking-tight ${rs.valueCls}`}>
-          {formatNumber(currentBlock)}
-        </p>
-
-        <Image
-          src={currentBlockImageSrc}
-          alt="current block icon"
-          width={100}
-          height={100}
-          className="absolute bottom-3 right-3 object-contain opacity-85 pointer-events-none select-none"
-          priority
-        />
-      </CardBase>
-
-      {/* Bloc 3 */}
-      <CardBase glow="white" heightPx={rs.cardHeightPx} padPx={rs.cardPadPx}>
-        <p className={`${rs.titleCls} font-semibold text-zinc-300`}>
-          Global Pills:
-        </p>
-        <div className="mt-2 flex items-center justify-center gap-2">
-          <p className={`font-extrabold tracking-tight ${rs.valueCls}`}>
-            {formatNumber(globalPills)}
+    <>
+      {/* Wrapper responsive piloté par variables CSS */}
+      <aside
+        className="rs-stats flex flex-col"
+        style={{ gap: "var(--rs-gap)" }}
+        aria-label="Right stats cards"
+      >
+        {/* Bloc 1 */}
+        <CardBase glow="orange">
+          <p className="text-sm text-zinc-300">Next Pill Block:</p>
+          <p
+            className="mt-2 font-extrabold tracking-tight leading-none"
+            style={{ fontSize: "var(--rs-valueSize)" }}
+          >
+            {formatNumber(nextBlock)}
           </p>
+
+          <div className="mt-4 w-full">
+            <BackgroundStripScroller
+              src="/trackpill.png"
+              stripWidth={24000}
+              stripHeight={32}
+              speedPps={30}
+              direction="rtl"
+            />
+          </div>
+        </CardBase>
+
+        {/* Bloc 2 */}
+        <CardBase glow="orange">
+          <p
+            className="font-semibold text-zinc-300 leading-none"
+            style={{ fontSize: "var(--rs-titleSize)" }}
+          >
+            Current Block:
+          </p>
+          <p
+            className="mt-2 font-extrabold tracking-tight leading-none"
+            style={{ fontSize: "var(--rs-valueSize)" }}
+          >
+            {formatNumber(currentBlock)}
+          </p>
+
           <Image
-            src={pillRankSrc}
-            alt="pill rank"
-            width={256}
-            height={256}
-            className="w-16 h-16 pointer-events-none select-none"
+            src={currentBlockImageSrc}
+            alt="current block icon"
+            width={100}
+            height={100}
+            className="absolute bottom-3 right-3 object-contain opacity-85 pointer-events-none select-none"
             priority
           />
-        </div>
-      </CardBase>
-    </aside>
+        </CardBase>
+
+        {/* Bloc 3 */}
+        <CardBase glow="white">
+          <p
+            className="font-semibold text-zinc-300 leading-none"
+            style={{ fontSize: "var(--rs-titleSize)" }}
+          >
+            Global Pills:
+          </p>
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <p
+              className="font-extrabold tracking-tight leading-none"
+              style={{ fontSize: "var(--rs-valueSize)" }}
+            >
+              {formatNumber(globalPills)}
+            </p>
+            <Image
+              src={pillRankSrc}
+              alt="pill rank"
+              width={256}
+              height={256}
+              className="w-16 h-16 pointer-events-none select-none"
+              priority
+            />
+          </div>
+        </CardBase>
+      </aside>
+
+      {/* Variables + MQ responsives (zéro JS, fiable en “windowed”) */}
+      <style jsx>{`
+        .rs-stats {
+          /* défaut desktop */
+          --rs-gap: 24px;
+          --rs-cardH: 192px; /* ~ h-48 */
+          --rs-cardPad: 24px; /* ~ p-6 */
+          --rs-scrollerH: 48px;
+          --rs-titleSize: 1.125rem; /* ~ text-lg */
+          --rs-valueSize: 1.875rem; /* ~ text-3xl */
+        }
+
+        /* Fenêtres “basses” (dont 1440×900, 1440×800, etc.) */
+        @media (max-height: 900px) {
+          .rs-stats {
+            --rs-gap: 16px;
+            --rs-cardH: 176px; /* ~ h-44 */
+            --rs-cardPad: 20px; /* ~ p-5 */
+            --rs-scrollerH: 40px;
+            --rs-titleSize: 1rem; /* text-base ~ */
+            --rs-valueSize: 1.5rem; /* text-2xl ~ */
+          }
+        }
+
+        /* Encore un cran si très bas (barres visibles, dock, etc.) */
+        @media (max-height: 820px) {
+          .rs-stats {
+            --rs-cardH: 168px;
+            --rs-cardPad: 18px;
+            --rs-scrollerH: 36px;
+            --rs-titleSize: 0.95rem;
+            --rs-valueSize: 1.375rem;
+          }
+        }
+
+        /* Ajustement fin quand la largeur est 1440px et hauteur “basse” */
+        @media (max-width: 1500px) and (max-height: 900px) {
+          .rs-stats {
+            --rs-cardH: 172px;
+            --rs-cardPad: 18px;
+            --rs-scrollerH: 38px;
+          }
+        }
+      `}</style>
+    </>
   );
 }
 
@@ -151,13 +151,9 @@ export default function RightStats({
 function CardBase({
   children,
   glow = "orange",
-  heightPx = 192,
-  padPx = 24,
 }: {
   children: React.ReactNode;
   glow?: "orange" | "white";
-  heightPx?: number;
-  padPx?: number;
 }) {
   const isOrange = glow === "orange";
   const auraColor = isOrange ? "#FF6600" : "#FFFFFF";
@@ -188,12 +184,15 @@ function CardBase({
           "motion-safe:hover:-translate-y-0.5",
           "will-change-transform will-change-shadow",
         ].join(" ")}
-        style={{ height: `${heightPx}px`, padding: `${padPx}px` }}
+        style={{
+          height: "var(--rs-cardH)",
+          padding: "var(--rs-cardPad)",
+        }}
       >
         {children}
       </div>
 
-      {/* Aura contenue dans la carte → plus de débordement sur le cadre parent */}
+      {/* Aura contenue dans la carte → pas de débordement sur le cadre parent */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 rounded-xl opacity-15 blur-lg transition-opacity duration-300 peer-hover:opacity-35"
@@ -203,24 +202,46 @@ function CardBase({
   );
 }
 
-/* ---------- Bande infinie via background-repeat ---------- */
+/* ---------- Bande infinie via background-repeat (responsive) ---------- */
 function BackgroundStripScroller({
   src,
   stripWidth,
   stripHeight,
-  displayHeight = 48,
   speedPps = 120,
   direction = "rtl",
 }: {
   src: string;
   stripWidth: number;
   stripHeight: number;
-  displayHeight?: number;
-  speedPps?: number;
+  speedPps?: number; // pixels/seconde
   direction?: "ltr" | "rtl";
 }) {
-  const scale = displayHeight / stripHeight;
-  const tileW = stripWidth * scale; // largeur rendue d'une répétition
+  // On lit la hauteur d'affichage depuis la variable CSS (--rs-scrollerH)
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [displayH, setDisplayH] = React.useState(48);
+
+  React.useEffect(() => {
+    const read = () => {
+      const el = ref.current;
+      if (!el) return;
+      const cs = getComputedStyle(el);
+      const v = cs.getPropertyValue("--rs-scrollerH").trim();
+      const n = parseFloat(v);
+      if (!Number.isNaN(n) && n > 0) setDisplayH(n);
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    if (ref.current) ro.observe(ref.current);
+    window.addEventListener("resize", read);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", read);
+    };
+  }, []);
+
+  // Calcule la durée d'une tuile en fonction de la hauteur rendue
+  const scale = displayH / stripHeight;
+  const tileW = stripWidth * scale;
   const secsPerTile = tileW / Math.max(1, speedPps);
 
   const animName = React.useId().replace(/[:]/g, "_") + "_marquee";
@@ -229,8 +250,12 @@ function BackgroundStripScroller({
 
   return (
     <div
+      ref={ref}
       className="relative w-full"
-      style={{ height: `${displayHeight}px`, overflow: "hidden" }}
+      style={{
+        height: "var(--rs-scrollerH)",
+        overflow: "hidden",
+      }}
     >
       <div
         className="h-full w-full"
@@ -239,7 +264,7 @@ function BackgroundStripScroller({
           backgroundRepeat: "repeat-x",
           backgroundPositionX: "0px",
           backgroundPositionY: "center",
-          backgroundSize: `auto ${displayHeight}px`,
+          backgroundSize: `auto ${displayH}px`, // suit la var CSS
           animation: `${animName} ${secsPerTile}s linear infinite`,
           willChange: "background-position-x",
         }}
