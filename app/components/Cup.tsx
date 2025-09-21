@@ -52,7 +52,7 @@ export default function Cup({
   initialPills = 784,
   pillSrc = "/pillbottle.png",
 
-  cupSrc = "/cup.png",
+  cupSrc = "/bottle.png",
   cupRimSrc = null,
   settingsIconSrc = "/settings.svg",
   maskSrc = "/maskcup.png",
@@ -90,6 +90,36 @@ export default function Cup({
 
   const targetSpriteCount = Math.min(48, Math.max(10, Math.floor(pills / 28)));
 
+  /* ---------------------- Viewport match (1440×800) ---------------------- */
+  const [is1440x800, setIs1440x800] = React.useState(false);
+  React.useEffect(() => {
+    const check = () =>
+      setIs1440x800(window.innerWidth === 1440 && window.innerHeight === 800);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  /* Insets dynamiques : défaut vs. 1440×800 */
+  const insets = React.useMemo(
+    () =>
+      is1440x800
+        ? { left: 20, right: 60, top: 40, bottom: 60 }
+        : {
+            left: maskInsetLeftCss,
+            right: maskInsetRightCss,
+            top: maskInsetTopCss,
+            bottom: maskInsetBottomCss,
+          },
+    [
+      is1440x800,
+      maskInsetLeftCss,
+      maskInsetRightCss,
+      maskInsetTopCss,
+      maskInsetBottomCss,
+    ]
+  );
+
   /* ---------------------- Mask build ---------------------- */
   const rebuildMaskCanvas = React.useCallback(() => {
     const container = containerRef.current;
@@ -117,10 +147,10 @@ export default function Cup({
     ctx.setTransform(pxPerCssX, 0, 0, pxPerCssY, 0, 0);
     ctx.scale(Wcss / vbWidth, Hcss / vbHeight);
 
-    const insetL = (maskInsetLeftCss * vbWidth) / Wcss;
-    const insetR = (maskInsetRightCss * vbWidth) / Wcss;
-    const insetT = (maskInsetTopCss * vbHeight) / Hcss;
-    const insetB = (maskInsetBottomCss * vbHeight) / Hcss;
+    const insetL = (insets.left * vbWidth) / Wcss;
+    const insetR = (insets.right * vbWidth) / Wcss;
+    const insetT = (insets.top * vbHeight) / Hcss;
+    const insetB = (insets.bottom * vbHeight) / Hcss;
 
     ctx.clearRect(0, 0, vbWidth, vbHeight);
     ctx.imageSmoothingEnabled = true;
@@ -135,14 +165,7 @@ export default function Cup({
 
     maskCanvasRef.current = canvas;
     setMaskReady(true);
-  }, [
-    vbWidth,
-    vbHeight,
-    maskInsetLeftCss,
-    maskInsetRightCss,
-    maskInsetTopCss,
-    maskInsetBottomCss,
-  ]);
+  }, [vbWidth, vbHeight, insets.left, insets.right, insets.top, insets.bottom]);
 
   const loadMaskImage = React.useCallback(() => {
     if (!maskSrc) return;
@@ -267,7 +290,7 @@ export default function Cup({
       img.style.position = "absolute";
       img.style.willChange = "transform";
       img.style.pointerEvents = "none";
-      img.style.opacity = "0.55";
+      img.style.opacity = "0.8";
       img.style.filter = "drop-shadow(0 2px 5px rgba(0,0,0,.35))";
       host.appendChild(img);
 
@@ -325,8 +348,9 @@ export default function Cup({
     <div className="relative w-full">
       <div
         ref={containerRef}
-        className="relative w-full max-w-[560px] mx-auto levitate"
+        className="relative w-full mx-auto"
         style={{
+          maxWidth: is1440x800 ? "480px" : "560px", // ← plus petit en 1440×800
           marginTop: `-${cupLiftPx}px`,
           aspectRatio: `${vbWidth} / ${vbHeight}`,
         }}

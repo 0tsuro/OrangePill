@@ -65,18 +65,10 @@
   animation: modalIn 0.3s ease forwards;
 }
 
-@keyframes levitate {
-  0%,
-  100% {
-    transform: translateY(0px);
+@media screen and (width: 1440px) and (height: 800px) {
+  .cup-1440 {
+    max-width: 480px !important; /* réduit un peu */
   }
-  50% {
-    transform: translateY(-12px); /* hauteur du flottement */
-  }
-}
-
-.levitate {
-  animation: levitate 2s ease-in-out infinite;
 }
 
 body {
