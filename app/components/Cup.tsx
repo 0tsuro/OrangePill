@@ -517,17 +517,13 @@ export default function Cup({
             >
               <div className="flex flex-col items-center">
                 {showYourPillsTitle && (
-                  <div
-                    className="mb-3 grid place-items-center"
-                    style={{ height: 64 }}
-                  >
+                  <div className="-translate-y-6 sm:-translate-y-10 will-change-transform">
                     <NextImage
                       src={"/title.png"}
                       alt="Your Pills"
                       width={250}
                       height={250}
                       className="object-contain"
-                      priority
                     />
                   </div>
                 )}
