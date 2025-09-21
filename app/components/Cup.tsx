@@ -24,7 +24,7 @@ type CupProps = {
   imgOffsetY?: number;
   imgScale?: number;
 
-  /** micro-corrections en px CSS pour gommer l’écart à droite/bas */
+  /** micro-corrections en px CSS pour gommer l’écart à droite/bas (valeurs défaut) */
   maskInsetLeftCss?: number;
   maskInsetRightCss?: number;
   maskInsetTopCss?: number;
@@ -32,6 +32,9 @@ type CupProps = {
 
   /** Remonte visuellement le bloc sans affecter la logique */
   cupLiftPx?: number;
+
+  /** Permet de masquer le titre interne pour éviter les doublons */
+  showYourPillsTitle?: boolean;
 };
 
 type Pill = {
@@ -44,13 +47,16 @@ type Pill = {
   h: number;
 };
 
+type Insets = { left: number; right: number; top: number; bottom: number };
+type ResponsiveState = { maxWidthPx: number; insets: Insets };
+
 export default function Cup({
   connected,
   onToggleConnect,
   onOpenSettings,
 
   initialPills = 784,
-  pillSrc = "/pillbottle.png",
+  pillSrc = "/orangepill.png",
 
   cupSrc = "/bottle.png",
   cupRimSrc = null,
@@ -72,6 +78,8 @@ export default function Cup({
   maskInsetBottomCss = 70,
 
   cupLiftPx = 24,
+
+  showYourPillsTitle = true,
 }: CupProps) {
   const [pills] = React.useState(initialPills);
   const [selectedChip, setSelectedChip] = React.useState<string | null>(null);
@@ -90,35 +98,102 @@ export default function Cup({
 
   const targetSpriteCount = Math.min(48, Math.max(10, Math.floor(pills / 28)));
 
-  /* ---------------------- Viewport match (1440×800) ---------------------- */
-  const [is1440x800, setIs1440x800] = React.useState(false);
-  React.useEffect(() => {
-    const check = () =>
-      setIs1440x800(window.innerWidth === 1440 && window.innerHeight === 800);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
+  /* ---------------------- Responsive presets (plus petits) ---------------------- */
+  const computeResponsive = React.useCallback((): ResponsiveState => {
+    if (typeof window === "undefined") {
+      return {
+        maxWidthPx: 540,
+        insets: {
+          left: maskInsetLeftCss,
+          right: maskInsetRightCss,
+          top: maskInsetTopCss,
+          bottom: maskInsetBottomCss,
+        },
+      };
+    }
+    const w = window.innerWidth;
+    const h = window.innerHeight;
 
-  /* Insets dynamiques : défaut vs. 1440×800 */
-  const insets = React.useMemo(
-    () =>
-      is1440x800
-        ? { left: 20, right: 60, top: 40, bottom: 60 }
-        : {
-            left: maskInsetLeftCss,
-            right: maskInsetRightCss,
-            top: maskInsetTopCss,
-            bottom: maskInsetBottomCss,
-          },
-    [
-      is1440x800,
-      maskInsetLeftCss,
-      maskInsetRightCss,
-      maskInsetTopCss,
-      maskInsetBottomCss,
-    ]
-  );
+    // largeur de base + insets (plus agressifs)
+    let maxWidthPx: number;
+    let insets: Insets = {
+      left: maskInsetLeftCss,
+      right: maskInsetRightCss,
+      top: maskInsetTopCss,
+      bottom: maskInsetBottomCss,
+    };
+
+    // Presets spécifiques
+    if (w >= 2560) {
+      maxWidthPx = 600;
+      insets = { left: 24, right: 72, top: 12, bottom: 72 };
+    } else if (w >= 1920) {
+      maxWidthPx = 540;
+      insets = { left: 24, right: 70, top: 12, bottom: 70 };
+    } else if (w >= 1600) {
+      maxWidthPx = 520;
+      insets = { left: 26, right: 78, top: 12, bottom: 72 };
+    } else if (w === 1440 && h === 900) {
+      maxWidthPx = 480;
+      insets = { left: 22, right: 62, top: 16, bottom: 62 };
+    } else if (w === 1440 && h === 800) {
+      maxWidthPx = 440;
+      insets = { left: 20, right: 60, top: 40, bottom: 60 }; // spécial
+    } else if (
+      (w === 1366 && h === 768) ||
+      (w >= 1360 && w < 1440 && h <= 800)
+    ) {
+      maxWidthPx = 420;
+      insets = { left: 22, right: 60, top: 22, bottom: 60 };
+    } else if (w >= 1280 && w < 1360) {
+      maxWidthPx = 400;
+      insets = { left: 22, right: 60, top: 20, bottom: 60 };
+    } else if (w >= 1024 && w < 1280) {
+      maxWidthPx = 360;
+      insets = { left: 20, right: 56, top: 18, bottom: 56 };
+    } else {
+      // fallback desktop
+      maxWidthPx = 520;
+      insets = {
+        left: maskInsetLeftCss,
+        right: maskInsetRightCss,
+        top: maskInsetTopCss,
+        bottom: maskInsetBottomCss,
+      };
+    }
+
+    // Cap par hauteur visible (écrans "plats") : on garde ~88% de la hauteur
+    const ratio = vbWidth / vbHeight; // l: h
+    const maxWidthByHeight = Math.floor(h * 0.88 * ratio);
+    if (maxWidthByHeight < maxWidthPx) {
+      maxWidthPx = maxWidthByHeight;
+      // quand on réduit par la hauteur, resserre un peu les insets pour éviter les débords visuels
+      insets = {
+        left: Math.max(16, insets.left - 4),
+        right: Math.max(48, insets.right - 6),
+        top: Math.max(10, insets.top - 2),
+        bottom: Math.max(50, insets.bottom - 4),
+      };
+    }
+
+    return { maxWidthPx, insets };
+  }, [
+    maskInsetLeftCss,
+    maskInsetRightCss,
+    maskInsetTopCss,
+    maskInsetBottomCss,
+    vbWidth,
+    vbHeight,
+  ]);
+
+  const [resp, setResp] = React.useState<ResponsiveState>(computeResponsive);
+
+  React.useEffect(() => {
+    const onResize = () => setResp(computeResponsive());
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [computeResponsive]);
 
   /* ---------------------- Mask build ---------------------- */
   const rebuildMaskCanvas = React.useCallback(() => {
@@ -147,10 +222,10 @@ export default function Cup({
     ctx.setTransform(pxPerCssX, 0, 0, pxPerCssY, 0, 0);
     ctx.scale(Wcss / vbWidth, Hcss / vbHeight);
 
-    const insetL = (insets.left * vbWidth) / Wcss;
-    const insetR = (insets.right * vbWidth) / Wcss;
-    const insetT = (insets.top * vbHeight) / Hcss;
-    const insetB = (insets.bottom * vbHeight) / Hcss;
+    const insetL = (resp.insets.left * vbWidth) / Wcss;
+    const insetR = (resp.insets.right * vbWidth) / Wcss;
+    const insetT = (resp.insets.top * vbHeight) / Hcss;
+    const insetB = (resp.insets.bottom * vbHeight) / Hcss;
 
     ctx.clearRect(0, 0, vbWidth, vbHeight);
     ctx.imageSmoothingEnabled = true;
@@ -165,7 +240,14 @@ export default function Cup({
 
     maskCanvasRef.current = canvas;
     setMaskReady(true);
-  }, [vbWidth, vbHeight, insets.left, insets.right, insets.top, insets.bottom]);
+  }, [
+    vbWidth,
+    vbHeight,
+    resp.insets.left,
+    resp.insets.right,
+    resp.insets.top,
+    resp.insets.bottom,
+  ]);
 
   const loadMaskImage = React.useCallback(() => {
     if (!maskSrc) return;
@@ -350,7 +432,7 @@ export default function Cup({
         ref={containerRef}
         className="relative w-full mx-auto"
         style={{
-          maxWidth: is1440x800 ? "480px" : "560px", // ← plus petit en 1440×800
+          maxWidth: `${resp.maxWidthPx}px`,
           marginTop: `-${cupLiftPx}px`,
           aspectRatio: `${vbWidth} / ${vbHeight}`,
         }}
@@ -426,7 +508,18 @@ export default function Cup({
               </>
             ) : (
               <>
-                <div className="mb-4 text-4xl">Your Pills</div>
+                {showYourPillsTitle && (
+                  <div className="mb-4 text-4xl">
+                    {" "}
+                    <NextImage
+                      src={"/title.png"}
+                      alt="Your Pills"
+                      width={300}
+                      height={300}
+                      className="object-contain"
+                    />
+                  </div>
+                )}
 
                 <p className="text-[100px] font-extrabold leading-none text-[#FF6600] drop-shadow-[0_2px_0_rgba(0,0,0,0.45)]">
                   {new Intl.NumberFormat("en-US").format(pills)}
