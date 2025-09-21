@@ -3,7 +3,6 @@
 import * as React from "react";
 import Image from "next/image";
 
-import Navbar from "./components/Navbar";
 import Leaderboard, { type Leader } from "./components/Leaderboard";
 import LeaderboardModal from "./components/LeaderboardModal";
 import RightStats from "./components/RightStats";
@@ -23,6 +22,20 @@ const leaders: Leader[] = [
   { addr: "bc1extra002", score: 650 },
 ];
 
+/* Dummys mobile (comme sur le screenshot) */
+const MOBILE_DUMMY = {
+  nextPillBlocks: 5,
+  currentBlock: 915_586,
+  globalPills: 10_367,
+};
+
+/* Utils */
+const nf = new Intl.NumberFormat("en-US");
+function formatNumber(n: number) {
+  return nf.format(n);
+}
+
+/* ---------------------------------- Page ---------------------------------- */
 export default function Page() {
   const [connected, setConnected] = React.useState(false);
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
@@ -31,17 +44,52 @@ export default function Page() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [aboutOpen, setAboutOpen] = React.useState(false);
 
-  const handleToggleConnect = () => {
+  // -------- PB responsive pour l’ASIDE GAUCHE (Leaderboard + RankCard) --------
+  const [leftAsidePB, setLeftAsidePB] = React.useState(0);
+  React.useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      let px = 0;
+      // 24" windowed
+      if (w === 1440 && (h === 800 || h === 900)) {
+        px = 12; // ~ pb-3
+      }
+      // écrans "plats" avec peu de hauteur visible
+      else if (w >= 1280 && h <= 900) {
+        px = 8; // ~ pb-2
+      } else {
+        px = 0;
+      }
+      setLeftAsidePB(px);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  // -------- Handlers connexion / déconnexion --------
+  const handleToggleConnect = React.useCallback(() => {
     setConnected((prev) => {
       const next = !prev;
-      // Adresse factice pour la démo
-      setWalletAddress(next ? "bc1p7w69r4jv0xyzq9...h3a" : null);
+      if (next) {
+        // Dummy address pour l’UI
+        setWalletAddress("bc1qxy2...8k6p");
+      } else {
+        setWalletAddress(null);
+      }
       return next;
     });
-  };
+  }, []);
+
+  const handleDisconnect = React.useCallback(() => {
+    setConnected(false);
+    setWalletAddress(null);
+  }, []);
 
   return (
-    <main className="relative h-dvh w-full overflow-y-auto bg-black text-white lg:overflow-hidden">
+    <main className="relative h-dvh w-full bg-black text-white overflow-y-auto lg:overflow-hidden">
       {/* ============================== MOBILE ============================== */}
       <section className="lg:hidden">
         {/* Header mobile (centré) */}
@@ -57,24 +105,30 @@ export default function Page() {
 
         {/* Cartes */}
         <div className="space-y-4 px-4 pb-24 pt-4">
+          {/* Next Pill Block */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Next Pill Block</p>
             <p className="mt-1 text-2xl font-extrabold text-[#FF7A0F]">
-              5 <span className="font-bold">blocks</span>
+              {formatNumber(MOBILE_DUMMY.nextPillBlocks)}{" "}
+              <span className="font-bold">blocks</span>
             </p>
           </GlowCard>
 
+          {/* Current Block */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Current Block</p>
             <p className="mt-1 text-3xl font-extrabold tracking-tight">
-              915,586
+              {formatNumber(MOBILE_DUMMY.currentBlock)}
             </p>
           </GlowCard>
 
+          {/* Global Pills */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Global Pills</p>
             <div className="mt-1 flex items-center gap-2">
-              <p className="text-3xl font-extrabold tracking-tight">10,367</p>
+              <p className="text-3xl font-extrabold tracking-tight">
+                {formatNumber(MOBILE_DUMMY.globalPills)}
+              </p>
               <Image
                 src="/orangepill.png"
                 alt="pill"
@@ -86,6 +140,7 @@ export default function Page() {
             </div>
           </GlowCard>
 
+          {/* Notifications */}
           <NotificationsCard />
         </div>
 
@@ -97,12 +152,9 @@ export default function Page() {
       <section className="hidden h-full flex-col lg:flex">
         <Navbar
           onOpenAbout={() => setAboutOpen(true)}
-          connected={connected}
+          isWalletConnected={connected}
           walletAddress={walletAddress ?? undefined}
-          onDisconnect={() => {
-            setConnected(false);
-            setWalletAddress(null);
-          }}
+          onDisconnect={handleDisconnect}
         />
 
         {/* GRID (one-screen, no scroll) */}
@@ -114,7 +166,10 @@ export default function Page() {
           "
         >
           {/* LEFT */}
-          <aside className="flex flex-col gap-4">
+          <aside
+            className="flex flex-col gap-4"
+            style={{ paddingBottom: leftAsidePB }}
+          >
             <Leaderboard
               leaders={leaders}
               activeIndex={4}
@@ -128,7 +183,6 @@ export default function Page() {
             connected={connected}
             onToggleConnect={handleToggleConnect}
             onOpenSettings={() => setSettingsOpen(true)}
-            // showYourPillsTitle={true} // si tu veux afficher l'image de titre interne
           />
 
           {/* RIGHT (stats inside a container bg) */}
@@ -164,6 +218,123 @@ export default function Page() {
       />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </main>
+  );
+}
+
+/* -------------------------------- NAVBAR --------------------------------- */
+function Navbar({
+  onOpenAbout,
+  isWalletConnected = false,
+  walletAddress,
+  onDisconnect,
+}: {
+  onOpenAbout: () => void;
+  isWalletConnected?: boolean;
+  walletAddress?: string;
+  onDisconnect?: () => void;
+}) {
+  const circle =
+    "flex items-center justify-center rounded-full bg-zinc-800/70 border border-white/10 shadow-sm hover:bg-[#FF6600]/80 hover:text-white transition";
+  const ovalBase =
+    "flex items-center justify-center rounded-full h-12 px-6 text-sm font-semibold uppercase tracking-wide border transition";
+  const ovalIdle =
+    "bg-zinc-900 text-white border-white/10 hover:bg-[#FF6600] hover:text-white";
+  const ovalActive =
+    "bg-[#FF6600] text-white border-[#FF6600] shadow-[0_0_10px_#ff660055,0_0_24px_#ff660033]";
+
+  const shortAddr = (a?: string) => {
+    if (!a) return "";
+    const clean = a.replace(/\s+/g, "");
+    return clean.length <= 14
+      ? clean
+      : `${clean.slice(0, 8)}…${clean.slice(-4)}`;
+  };
+
+  return (
+    <nav className="flex w-full items-center justify-between px-16 py-6">
+      {/* LEFT: logo + nav buttons */}
+      <div className="flex items-center gap-4">
+        <a href="#" className={`${circle} size-14`} aria-label="Home">
+          <Image
+            src="/orangepill.png"
+            width={40}
+            height={40}
+            alt="OrangePill Logo"
+            className="object-contain"
+            priority
+          />
+        </a>
+
+        {/* Dashboard — reste orange si wallet connecté */}
+        <a
+          href="#"
+          aria-current={isWalletConnected ? "page" : undefined}
+          className={`${ovalBase} ${isWalletConnected ? ovalActive : ovalIdle}`}
+        >
+          Dashboard
+        </a>
+
+        <button
+          onClick={onOpenAbout}
+          className={`${ovalBase} ${ovalIdle} cursor-pointer`}
+        >
+          What is OrangePill?
+        </button>
+
+        <a
+          href="https://ordinals.com/"
+          target="_blank"
+          rel="noreferrer"
+          className={`${ovalBase} ${ovalIdle}`}
+        >
+          OrdiScan
+          <div className="ml-1">
+            <Image src={"/view.svg"} width={12} height={12} alt="" />
+          </div>
+        </a>
+      </div>
+
+      {/* RIGHT: round icons / wallet */}
+      <div className="flex items-center gap-2">
+        <a href="#" className={`${circle} size-10`} aria-label="Discord">
+          <Image src="/discord.svg" width={20} height={20} alt="" />
+        </a>
+        <a href="#" className={`${circle} size-10`} aria-label="X">
+          <Image src="/x.svg" width={20} height={20} alt="" />
+        </a>
+        <a href="#" className={`${circle} size-10`} aria-label="Bell">
+          <Image src="/bell.svg" width={20} height={20} alt="" />
+        </a>
+
+        {/* Wallet area */}
+        {isWalletConnected && walletAddress ? (
+          <button
+            type="button"
+            onClick={onDisconnect}
+            className={[
+              "group flex items-center gap-2 rounded-full h-10 px-4 text-xs font-semibold transition",
+              "bg-zinc-900 text-white border border-white/10",
+              "hover:bg-[#FF6600] hover:text-white", // hover orange comme les autres
+              "shadow-sm",
+            ].join(" ")}
+            title="Disconnect"
+          >
+            <span className="opacity-90">{shortAddr(walletAddress)}</span>
+            <Image
+              src="/exit.png"
+              width={14}
+              height={14}
+              alt="Disconnect"
+              className="opacity-80 group-hover:opacity-100"
+            />
+          </button>
+        ) : (
+          <a href="#" className={`${circle} size-10`} aria-label="Wallet">
+            <Image src="/wallet.svg" width={20} height={20} alt="" />
+          </a>
+        )}
+      </div>
+    </nav>
   );
 }
 
@@ -246,6 +417,7 @@ function DesktopBannerCTA() {
             For the full experience, take the pill on{" "}
             <span className="text-[#FF7A0F]">desktop</span>.
           </p>
+
           <div className="mt-3 flex items-center gap-2">
             <button
               onClick={copy}

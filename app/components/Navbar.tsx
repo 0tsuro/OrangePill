@@ -60,7 +60,7 @@ export default function Navbar({
         </button>
 
         <a
-          href="https://ordinals.com/"
+          href="#"
           target="_blank"
           rel="noreferrer"
           className={`${ovalBase} ${ovalIdle}`}

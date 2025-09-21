@@ -10,12 +10,25 @@ type Props = {
   pillRankSrc?: string;
   activeIndex?: number;
   forceScrollDemo?: boolean;
-  /** 👈 NEW: called when CTA is clicked */
   onOpen?: () => void;
 };
 
 const nf = new Intl.NumberFormat("en-US");
 const formatNumber = (n: number) => nf.format(n);
+
+/** Facteur d’échelle visuel pour certaines tailles “windowed” courantes. */
+function computeWindowedScale(): number {
+  if (typeof window === "undefined") return 1;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  if (w === 1440 && h === 800) return 0.89;
+  if (w === 1440 && h === 900) return 0.92;
+  if (w === 1366 && h === 768) return 0.9;
+
+  if (w >= 1280 && w <= 1536 && h <= 900) return 0.94;
+  return 1;
+}
 
 export default function Leaderboard({
   leaders,
@@ -48,8 +61,24 @@ export default function Leaderboard({
       : [...leaders, ...extras].slice(0, 12);
   }, [leaders, forceScrollDemo]);
 
+  // Responsive scale (windowed 24’’ & co)
+  const [scale, setScale] = React.useState<number>(1);
+  React.useEffect(() => {
+    const apply = () => setScale(computeWindowedScale());
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, []);
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-4 pb-5">
+    <div
+      className="relative rounded-2xl border border-white/10 bg-[#1B1B1B] p-4 pb-5 overflow-hidden isolate shadow-[0_6px_24px_rgba(0,0,0,0.35)]"
+      style={{
+        transform: scale !== 1 ? `scale(${scale})` : undefined,
+        transformOrigin: "top left",
+        willChange: scale !== 1 ? "transform" : undefined,
+      }}
+    >
       {/* Header */}
       <div className="mb-3 flex items-center gap-2.5">
         <Image
@@ -117,6 +146,7 @@ export default function Leaderboard({
                     alt="rank pill"
                     width={26}
                     height={26}
+                    className="object-contain"
                   />
                 </div>
               </li>
@@ -125,7 +155,7 @@ export default function Leaderboard({
         </ul>
       </div>
 
-      {/* CTA -> opens your nice LeaderboardModal */}
+      {/* CTA */}
       <button
         type="button"
         onClick={onOpen}

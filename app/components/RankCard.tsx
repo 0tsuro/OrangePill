@@ -14,8 +14,29 @@ export default function RankCard({
   myRank?: number;
   connected: boolean;
 }) {
+  // --- Réduction de l’espace au-dessus (responsive/windowed 24") ---
+  const [compactTop, setCompactTop] = React.useState(false);
+  React.useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const isWindowed24 = w === 1440 && (h === 800 || h === 900);
+      // compact si 24" windowed OU écrans plats <=900px de haut
+      const compact =
+        isWindowed24 || (w >= 1280 && w <= 1600 && h <= 900) || h <= 820;
+      setCompactTop(compact);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-5">
+    <div
+      className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-5"
+      // on "mange" un peu le gap du parent avec un margin-top négatif
+      style={{ marginTop: compactTop ? "-8px" : undefined }}
+    >
       <div className="mb-2 flex items-center gap-2">
         <svg
           viewBox="0 0 24 24"

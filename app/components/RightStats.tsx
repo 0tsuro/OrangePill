@@ -7,9 +7,9 @@ export default function RightStats({
   nextBlock = 50,
   currentBlock = 49,
   globalPills = 12324,
-  barImageSrc = "/bar.png", // (non utilisé ici, tu peux l'enlever si tu veux)
+  barImageSrc = "/bar.png", // non utilisé, tu peux le retirer si tu veux
   currentBlockImageSrc = "/block.png",
-  pillRankSrc = "/rankpill.png",
+  pillRankSrc = "/orangepill.png",
 }: {
   nextBlock?: number;
   currentBlock?: number;
@@ -19,7 +19,8 @@ export default function RightStats({
   pillRankSrc?: string;
 }) {
   return (
-    <aside className="flex flex-col gap-6">
+    // ici: simple colonne, c’est le parent (aside dans page.tsx) qui gère le cadre
+    <aside className="flex flex-col gap-5 sm:gap-6">
       {/* Bloc 1 */}
       <CardBase glow="orange">
         <p className="text-sm text-zinc-300">Next Pill Block:</p>
@@ -28,26 +29,21 @@ export default function RightStats({
         </p>
 
         <div className="mt-4 w-full">
-          {/* 👇 bande qui défile en BOUCLE (sans trou, sans étirement) */}
+          {/* bande qui défile en boucle, sans trou ni étirement */}
           <BackgroundStripScroller
             src="/trackpill.png"
             stripWidth={24000}
             stripHeight={32}
-            displayHeight={48} // EXACTEMENT la même hauteur qu’avant
-            speedPps={30} // pixels/seconde (dans les pixels RENDUS)
-            direction="rtl" // "rtl" (droite→gauche) ou "ltr"
+            displayHeight={48} // garde exactement ta hauteur d’origine
+            speedPps={30}
+            direction="rtl"
           />
         </div>
       </CardBase>
 
       {/* Bloc 2 */}
       <CardBase glow="orange">
-        <p
-          className="text-xl font-semibold text-zinc-300"
-          style={{ fontFamily: "Poppins" }}
-        >
-          Current Block:
-        </p>
+        <p className="text-xl font-semibold text-zinc-300">Current Block:</p>
         <p className="mt-2 text-3xl font-extrabold tracking-tight">
           {formatNumber(currentBlock)}
         </p>
@@ -64,12 +60,7 @@ export default function RightStats({
 
       {/* Bloc 3 */}
       <CardBase glow="white">
-        <p
-          className="text-xl font-semibold text-zinc-300"
-          style={{ fontFamily: "Poppins" }}
-        >
-          Global Pills:
-        </p>
+        <p className="text-xl font-semibold text-zinc-300">Global Pills:</p>
         <div className="mt-2 flex items-center justify-center gap-2">
           <p className="text-3xl font-extrabold tracking-tight">
             {formatNumber(globalPills)}
@@ -88,7 +79,7 @@ export default function RightStats({
   );
 }
 
-/* ---------- CardBase (glow) ---------- */
+/* ---------- CardBase (glow contenu) ---------- */
 function CardBase({
   children,
   glow = "orange",
@@ -100,14 +91,15 @@ function CardBase({
   const auraColor = isOrange ? "#FF6600" : "#FFFFFF";
   const ringBase = isOrange ? "ring-[#FF66001f]" : "ring-white/20";
   const ringHover = isOrange
-    ? "hover:ring-[#FF6600]/80"
-    : "hover:ring-white/90";
+    ? "hover:ring-[#FF6600]/70"
+    : "hover:ring-white/80";
+
   const baseShadow = isOrange
     ? "shadow-[0_0_12px_#ff660026,0_0_28px_#ff660014]"
     : "shadow-[0_0_10px_#ffffff22,0_0_22px_#ffffff10]";
   const hoverShadow = isOrange
-    ? "hover:shadow-[0_0_24px_#ff66004d,0_0_52px_#ff66002e]"
-    : "hover:shadow-[0_0_20px_#ffffff4d,0_0_44px_#ffffff26]";
+    ? "hover:shadow-[0_0_22px_#ff660045,0_0_46px_#ff660028]"
+    : "hover:shadow-[0_0_18px_#ffffff45,0_0_40px_#ffffff26]";
 
   return (
     <div className="relative isolate">
@@ -128,49 +120,36 @@ function CardBase({
         {children}
       </div>
 
+      {/* Aura contenue dans la carte → plus de débordement sur le cadre parent */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-1 -z-10 rounded-2xl opacity-16 blur-xl transition-opacity duration-300 peer-hover:opacity-40"
-        style={{ background: auraColor, filter: "saturate(2)" }}
+        className="pointer-events-none absolute inset-0 -z-10 rounded-xl opacity-15 blur-lg transition-opacity duration-300 peer-hover:opacity-35"
+        style={{ background: auraColor, filter: "saturate(1.8)" }}
       />
     </div>
   );
 }
 
-/* ---------- Bande infinie via background-repeat (solution robuste) ---------- */
-/**
- * On n'utilise PAS <Image> pour animer : on s'appuie sur
- * - background-image: url(src)
- * - background-repeat: repeat-x
- * - background-size: auto {displayHeight}px  (=> aucun étirement, ratio 1:1 rendu)
- * - animation CSS sur background-position-x pour une boucle parfaite.
- *
- * Avantages :
- * - Jamais de "trou" : le repeat-x garantit la continuité.
- * - Zéro blur/étirement : on force la hauteur rendue (displayHeight) et la largeur suit le ratio.
- * - Perf lisse (animation CSS, pas de JS à chaque frame).
- */
+/* ---------- Bande infinie via background-repeat ---------- */
 function BackgroundStripScroller({
   src,
   stripWidth,
   stripHeight,
   displayHeight = 48,
-  speedPps = 120, // vitesse en pixels RENDUS / seconde
-  direction = "rtl", // "rtl" = défilement vers la gauche visuellement
+  speedPps = 120,
+  direction = "rtl",
 }: {
   src: string;
-  stripWidth: number; // largeur source (utilisé seulement pour calcul de durée)
-  stripHeight: number; // hauteur source
+  stripWidth: number;
+  stripHeight: number;
   displayHeight?: number;
   speedPps?: number;
   direction?: "ltr" | "rtl";
 }) {
-  // largeur RENDUE d'une période visuelle à h = displayHeight
   const scale = displayHeight / stripHeight;
-  const tileW = stripWidth * scale; // largeur rendue d'UNE répétition
-  const secsPerTile = tileW / Math.max(1, speedPps); // durée pour "parcourir" une tuile
+  const tileW = stripWidth * scale; // largeur rendue d'une répétition
+  const secsPerTile = tileW / Math.max(1, speedPps);
 
-  // clé d'anim unique pour éviter les collisions CSS si plusieurs instances
   const animName = React.useId().replace(/[:]/g, "_") + "_marquee";
   const fromPos = "0px";
   const toPos = (direction === "rtl" ? -tileW : tileW) + "px";
@@ -187,12 +166,11 @@ function BackgroundStripScroller({
           backgroundRepeat: "repeat-x",
           backgroundPositionX: "0px",
           backgroundPositionY: "center",
-          backgroundSize: `auto ${displayHeight}px`, // hauteur FIXE → pas d'étirement
+          backgroundSize: `auto ${displayHeight}px`,
           animation: `${animName} ${secsPerTile}s linear infinite`,
           willChange: "background-position-x",
         }}
       />
-      {/* Animation CSS dédiée à CETTE instance */}
       <style jsx>{`
         @keyframes ${animName} {
           from {

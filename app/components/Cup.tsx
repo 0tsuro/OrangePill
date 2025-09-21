@@ -102,7 +102,7 @@ export default function Cup({
   const computeResponsive = React.useCallback((): ResponsiveState => {
     if (typeof window === "undefined") {
       return {
-        maxWidthPx: 540,
+        maxWidthPx: 500,
         insets: {
           left: maskInsetLeftCss,
           right: maskInsetRightCss,
