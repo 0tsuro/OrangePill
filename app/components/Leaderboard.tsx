@@ -73,8 +73,8 @@ export default function Leaderboard({
         <Image
           src={pillIconSrc}
           alt="Leaderboard Icon"
-          width={56}
-          height={56}
+          width={44}
+          height={44}
           priority
         />
         <h2 className="text-xl font-semibold">Leaderboard</h2>
