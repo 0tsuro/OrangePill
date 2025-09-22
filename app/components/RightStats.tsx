@@ -2,12 +2,11 @@
 import React from "react";
 import Image from "next/image";
 
-/* ---------- Composant principal ---------- */
 export default function RightStats({
   nextBlock = 50,
   currentBlock = 49,
   globalPills = 12324,
-  barImageSrc = "/bar.png", // non utilisé
+  barImageSrc = "/bar.png", // not used
   currentBlockImageSrc = "/block.png",
   pillRankSrc = "/orangepill.png",
 }: {
@@ -20,13 +19,13 @@ export default function RightStats({
 }) {
   return (
     <>
-      {/* Wrapper responsive piloté par variables CSS */}
+      {/* wrapper with CSS variables */}
       <aside
         className="rs-stats flex flex-col"
         style={{ gap: "var(--rs-gap)" }}
         aria-label="Right stats cards"
       >
-        {/* Bloc 1 */}
+        {/* block 1 */}
         <CardBase glow="orange">
           <p className="text-sm text-zinc-300">Next Pill Block:</p>
           <p
@@ -47,7 +46,7 @@ export default function RightStats({
           </div>
         </CardBase>
 
-        {/* Bloc 2 */}
+        {/* block 2 */}
         <CardBase glow="orange">
           <p
             className="font-semibold text-zinc-300 leading-none"
@@ -72,7 +71,7 @@ export default function RightStats({
           />
         </CardBase>
 
-        {/* Bloc 3 */}
+        {/* block 3 */}
         <CardBase glow="white">
           <p
             className="font-semibold text-zinc-300 leading-none"
@@ -99,31 +98,28 @@ export default function RightStats({
         </CardBase>
       </aside>
 
-      {/* Variables + MQ responsives (zéro JS, fiable en “windowed”) */}
+      {/* responsive CSS vars */}
       <style jsx>{`
         .rs-stats {
-          /* défaut desktop */
           --rs-gap: 24px;
-          --rs-cardH: 192px; /* ~ h-48 */
-          --rs-cardPad: 24px; /* ~ p-6 */
+          --rs-cardH: 192px;
+          --rs-cardPad: 24px;
           --rs-scrollerH: 48px;
-          --rs-titleSize: 1.125rem; /* ~ text-lg */
-          --rs-valueSize: 1.875rem; /* ~ text-3xl */
+          --rs-titleSize: 1.125rem;
+          --rs-valueSize: 1.875rem;
         }
 
-        /* Fenêtres “basses” (dont 1440×900, 1440×800, etc.) */
         @media (max-height: 900px) {
           .rs-stats {
             --rs-gap: 16px;
-            --rs-cardH: 176px; /* ~ h-44 */
-            --rs-cardPad: 20px; /* ~ p-5 */
+            --rs-cardH: 176px;
+            --rs-cardPad: 20px;
             --rs-scrollerH: 40px;
-            --rs-titleSize: 1rem; /* text-base ~ */
-            --rs-valueSize: 1.5rem; /* text-2xl ~ */
+            --rs-titleSize: 1rem;
+            --rs-valueSize: 1.5rem;
           }
         }
 
-        /* Encore un cran si très bas (barres visibles, dock, etc.) */
         @media (max-height: 820px) {
           .rs-stats {
             --rs-cardH: 168px;
@@ -134,7 +130,6 @@ export default function RightStats({
           }
         }
 
-        /* Ajustement fin quand la largeur est 1440px et hauteur “basse” */
         @media (max-width: 1500px) and (max-height: 900px) {
           .rs-stats {
             --rs-cardH: 172px;
@@ -147,7 +142,7 @@ export default function RightStats({
   );
 }
 
-/* ---------- CardBase (glow contenu) ---------- */
+/* card with glow */
 function CardBase({
   children,
   glow = "orange",
@@ -192,7 +187,7 @@ function CardBase({
         {children}
       </div>
 
-      {/* Aura contenue dans la carte → pas de débordement sur le cadre parent */}
+      {/* glow aura */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 rounded-xl opacity-15 blur-lg transition-opacity duration-300 peer-hover:opacity-35"
@@ -202,7 +197,7 @@ function CardBase({
   );
 }
 
-/* ---------- Bande infinie via background-repeat (responsive) ---------- */
+/* infinite scrolling strip */
 function BackgroundStripScroller({
   src,
   stripWidth,
@@ -213,10 +208,10 @@ function BackgroundStripScroller({
   src: string;
   stripWidth: number;
   stripHeight: number;
-  speedPps?: number; // pixels/seconde
+  speedPps?: number;
   direction?: "ltr" | "rtl";
 }) {
-  // On lit la hauteur d'affichage depuis la variable CSS (--rs-scrollerH)
+  // read display height from CSS variable
   const ref = React.useRef<HTMLDivElement>(null);
   const [displayH, setDisplayH] = React.useState(48);
 
@@ -239,7 +234,7 @@ function BackgroundStripScroller({
     };
   }, []);
 
-  // Calcule la durée d'une tuile en fonction de la hauteur rendue
+  // compute animation timing
   const scale = displayH / stripHeight;
   const tileW = stripWidth * scale;
   const secsPerTile = tileW / Math.max(1, speedPps);
@@ -264,7 +259,7 @@ function BackgroundStripScroller({
           backgroundRepeat: "repeat-x",
           backgroundPositionX: "0px",
           backgroundPositionY: "center",
-          backgroundSize: `auto ${displayH}px`, // suit la var CSS
+          backgroundSize: `auto ${displayH}px`,
           animation: `${animName} ${secsPerTile}s linear infinite`,
           willChange: "background-position-x",
         }}
@@ -283,7 +278,7 @@ function BackgroundStripScroller({
   );
 }
 
-/* ---------- utils ---------- */
+/* number formatter */
 const nf = new Intl.NumberFormat("en-US");
 function formatNumber(n: number) {
   return nf.format(n);

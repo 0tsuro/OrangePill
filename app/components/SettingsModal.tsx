@@ -21,13 +21,13 @@ export default function SettingsModal({
         }
       `}
     >
-      {/* Backdrop */}
+      {/* backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-200"
         onClick={onClose}
       />
 
-      {/* Panel (animé) */}
+      {/* panel */}
       <div
         className={`
           relative w-[min(720px,92vw)] rounded-3xl border border-white/15
@@ -40,6 +40,7 @@ export default function SettingsModal({
           }
         `}
       >
+        {/* header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="grid size-8 place-items-center rounded-full bg-white/10">
@@ -61,7 +62,9 @@ export default function SettingsModal({
           </button>
         </div>
 
+        {/* content */}
         <div className="space-y-6">
+          {/* input field */}
           <div>
             <label
               className="text-sm text-white/80 ml-4"
@@ -79,6 +82,7 @@ export default function SettingsModal({
             </p>
           </div>
 
+          {/* toggle option */}
           <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#141414] px-4 py-3">
             <div>
               <p className="text-sm" style={{ fontFamily: "Poppins" }}>
@@ -93,6 +97,7 @@ export default function SettingsModal({
             </button>
           </div>
 
+          {/* footer buttons */}
           <div className="mt-8 flex items-center justify-center gap-4">
             <button
               className="

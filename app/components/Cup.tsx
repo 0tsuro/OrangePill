@@ -93,7 +93,7 @@ export default function Cup({
 
   const targetSpriteCount = Math.min(48, Math.max(10, Math.floor(pills / 28)));
 
-  /* ---------------------- Responsive (incl. 24" windowed) ---------------------- */
+  /* ---------------------- Responsive layout (incl. 24" windowed) ---------------------- */
   const computeResponsive = React.useCallback((): ResponsiveState => {
     if (typeof window === "undefined") {
       return {
@@ -149,7 +149,7 @@ export default function Cup({
       maxWidthPx = 520;
     }
 
-    // cap à la hauteur visible (~88% de h)
+    // height cap (~88% of viewport height)
     const ratio = vbWidth / vbHeight;
     const maxWidthByHeight = Math.floor(h * 0.88 * ratio);
     if (maxWidthByHeight < maxWidthPx) {
@@ -477,16 +477,16 @@ export default function Cup({
           )}
         </svg>
 
-        {/* ===== UI : deux panneaux superposés, fade simple, clic garanti ===== */}
+        {/* UI: two overlay panels, simple fade, safe clicks */}
         <div className="absolute inset-0 z-10 flex items-center justify-center px-8">
           <div
             className="relative w-full"
             style={{
               maxWidth: 520,
-              minHeight: 260, // réserve -> évite le “jump”
+              minHeight: 260, // reserve space to avoid jump
             }}
           >
-            {/* Panneau NON CONNECTÉ */}
+            {/* DISCONNECTED PANEL */}
             <div
               className={[
                 "absolute inset-0 grid place-items-center transition-opacity duration-200 ease-out",
@@ -507,7 +507,7 @@ export default function Cup({
               </div>
             </div>
 
-            {/* Panneau CONNECTÉ */}
+            {/* CONNECTED PANEL */}
             <div
               className={[
                 "absolute inset-0 grid place-items-center transition-opacity duration-200 ease-out",
@@ -590,7 +590,7 @@ export default function Cup({
             </div>
           </div>
         </div>
-        {/* ===== /UI ===== */}
+        {/* /UI */}
       </div>
     </div>
   );

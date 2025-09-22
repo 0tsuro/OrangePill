@@ -11,7 +11,7 @@ import RankCard from "./components/RankCard";
 import SettingsModal from "./components/SettingsModal";
 import AboutModal from "./components/AboutModal";
 
-/* ------------------------------- Fake data ------------------------------- */
+/* fake data */
 const leaders: Leader[] = [
   { addr: "bc1p7w69r4jv...1", score: 1319 },
   { addr: "bc1p7w69r4jv...2", score: 999 },
@@ -22,20 +22,20 @@ const leaders: Leader[] = [
   { addr: "bc1extra002", score: 650 },
 ];
 
-/* Dummys mobile (comme sur le screenshot) */
+/* mobile dummy values (screenshot-like) */
 const MOBILE_DUMMY = {
   nextPillBlocks: 5,
   currentBlock: 915_586,
   globalPills: 10_367,
 };
 
-/* Utils */
+/* utils */
 const nf = new Intl.NumberFormat("en-US");
 function formatNumber(n: number) {
   return nf.format(n);
 }
 
-/* ---------------------------------- Page ---------------------------------- */
+/* page component */
 export default function Page() {
   const [connected, setConnected] = React.useState(false);
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
@@ -44,7 +44,7 @@ export default function Page() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [aboutOpen, setAboutOpen] = React.useState(false);
 
-  // -------- PB responsive pour l’ASIDE GAUCHE (Leaderboard + RankCard) --------
+  /* left aside bottom padding fix for short screens */
   const [leftAsidePB, setLeftAsidePB] = React.useState(0);
   React.useEffect(() => {
     const update = () => {
@@ -56,7 +56,7 @@ export default function Page() {
       if (w === 1440 && (h === 800 || h === 900)) {
         px = 12; // ~ pb-3
       }
-      // écrans "plats" avec peu de hauteur visible
+      // flat screens (low height)
       else if (w >= 1280 && h <= 900) {
         px = 8; // ~ pb-2
       } else {
@@ -69,12 +69,12 @@ export default function Page() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // -------- Handlers connexion / déconnexion --------
+  /* connect / disconnect handlers */
   const handleToggleConnect = React.useCallback(() => {
     setConnected((prev) => {
       const next = !prev;
       if (next) {
-        // Dummy address pour l’UI
+        // dummy address for UI
         setWalletAddress("bc1qxy2...8k6p");
       } else {
         setWalletAddress(null);
@@ -92,20 +92,20 @@ export default function Page() {
     <main className="relative h-dvh w-full bg-black text-white overflow-y-auto lg:overflow-hidden">
       {/* ============================== MOBILE ============================== */}
       <section className="lg:hidden">
-        {/* Header mobile (centré) */}
+        {/* mobile header */}
         <header className="px-6 pt-8 pb-4 text-center">
           <h1 className="text-3xl font-extrabold">Orange Pill</h1>
           <div className="mx-auto mt-2 h-1 w-20 rounded-full bg-[#FF7A0F]" />
         </header>
 
-        {/* Banner: take the pill on PC */}
+        {/* banner: suggest desktop */}
         <div className="px-4">
           <DesktopBannerCTA />
         </div>
 
-        {/* Cartes */}
+        {/* cards */}
         <div className="space-y-4 px-4 pb-24 pt-4">
-          {/* Next Pill Block */}
+          {/* next pill block */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Next Pill Block</p>
             <p className="mt-1 text-2xl font-extrabold text-[#FF7A0F]">
@@ -114,7 +114,7 @@ export default function Page() {
             </p>
           </GlowCard>
 
-          {/* Current Block */}
+          {/* current block */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Current Block</p>
             <p className="mt-1 text-3xl font-extrabold tracking-tight">
@@ -122,7 +122,7 @@ export default function Page() {
             </p>
           </GlowCard>
 
-          {/* Global Pills */}
+          {/* global pills */}
           <GlowCard color="white">
             <p className="text-sm text-zinc-400">Global Pills</p>
             <div className="mt-1 flex items-center gap-2">
@@ -140,11 +140,11 @@ export default function Page() {
             </div>
           </GlowCard>
 
-          {/* Notifications */}
+          {/* notifications helper */}
           <NotificationsCard />
         </div>
 
-        {/* mini footer bar orange */}
+        {/* small orange footer bar */}
         <footer className="fixed inset-x-0 bottom-0 h-6 bg-[#FF7A0F]" />
       </section>
 
@@ -157,7 +157,7 @@ export default function Page() {
           onDisconnect={handleDisconnect}
         />
 
-        {/* GRID (one-screen, no scroll) */}
+        {/* grid (single screen, no scroll) */}
         <section
           className="
             grid h-[calc(100dvh-120px)] w-full
@@ -165,7 +165,7 @@ export default function Page() {
             items-center gap-4 px-14
           "
         >
-          {/* LEFT */}
+          {/* left column */}
           <aside
             className="flex flex-col gap-4"
             style={{ paddingBottom: leftAsidePB }}
@@ -178,14 +178,14 @@ export default function Page() {
             <RankCard myRank={5} connected={connected} />
           </aside>
 
-          {/* CENTER (Cup) */}
+          {/* center (cup) */}
           <Cup
             connected={connected}
             onToggleConnect={handleToggleConnect}
             onOpenSettings={() => setSettingsOpen(true)}
           />
 
-          {/* RIGHT (stats inside a container bg) */}
+          {/* right (stats in card) */}
           <aside className="rounded-2xl border border-white/10 bg-[#1B1B1B] p-3">
             <RightStats
               nextBlock={50}
@@ -198,7 +198,7 @@ export default function Page() {
           </aside>
         </section>
 
-        {/* FOOTER */}
+        {/* footer */}
         <footer className="pointer-events-none absolute inset-x-0 bottom-0">
           <div className="flex h-6 items-center justify-end bg-[#FF7A0F] pr-6 text-[10px] font-bold tracking-wide text-black">
             ORANGE PILL, 2025, ALL RIGHTS RESERVED
@@ -221,7 +221,7 @@ export default function Page() {
   );
 }
 
-/* -------------------------------- NAVBAR --------------------------------- */
+/* navbar (desktop only in this file) */
 function Navbar({
   onOpenAbout,
   isWalletConnected = false,
@@ -252,7 +252,7 @@ function Navbar({
 
   return (
     <nav className="flex w-full items-center justify-between px-16 py-6">
-      {/* LEFT: logo + nav buttons */}
+      {/* left: logo + main buttons */}
       <div className="flex items-center gap-4">
         <a href="#" className={`${circle} size-14`} aria-label="Home">
           <Image
@@ -265,7 +265,7 @@ function Navbar({
           />
         </a>
 
-        {/* Dashboard — reste orange si wallet connecté */}
+        {/* dashboard (stays orange when connected) */}
         <a
           href="#"
           aria-current={isWalletConnected ? "page" : undefined}
@@ -274,27 +274,16 @@ function Navbar({
           Dashboard
         </a>
 
+        {/* about button */}
         <button
           onClick={onOpenAbout}
           className={`${ovalBase} ${ovalIdle} cursor-pointer`}
         >
           What is Orange Pill?
         </button>
-
-        <a
-          href="/#"
-          target="_blank"
-          rel="noreferrer"
-          className={`${ovalBase} ${ovalIdle}`}
-        >
-          OrdiScan
-          <div className="ml-1">
-            <Image src={"/view.svg"} width={12} height={12} alt="" />
-          </div>
-        </a>
       </div>
 
-      {/* RIGHT: round icons / wallet */}
+      {/* right: round icons + wallet */}
       <div className="flex items-center gap-2">
         <a href="#" className={`${circle} size-10`} aria-label="Discord">
           <Image src="/discord.svg" width={20} height={20} alt="" />
@@ -306,7 +295,7 @@ function Navbar({
           <Image src="/bell.svg" width={20} height={20} alt="" />
         </a>
 
-        {/* Wallet area */}
+        {/* wallet area */}
         {isWalletConnected && walletAddress ? (
           <button
             type="button"
@@ -314,7 +303,7 @@ function Navbar({
             className={[
               "group flex items-center gap-2 rounded-full h-10 px-4 text-xs font-semibold transition",
               "bg-zinc-900 text-white border border-white/10",
-              "hover:bg-[#FF6600] hover:text-white", // hover orange comme les autres
+              "hover:bg-[#FF6600] hover:text-white",
               "shadow-sm",
             ].join(" ")}
             title="Disconnect"
@@ -338,7 +327,7 @@ function Navbar({
   );
 }
 
-/* ------------------------------ GlowCard (mobile) ------------------------------ */
+/* card with glow (mobile) */
 function GlowCard({
   children,
   color = "orange",
@@ -380,7 +369,7 @@ function GlowCard({
         {children}
       </div>
 
-      {/* Aura */}
+      {/* glow aura */}
       <div
         aria-hidden
         className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl opacity-20 blur-xl transition-opacity duration-300"
@@ -390,7 +379,7 @@ function GlowCard({
   );
 }
 
-/* ------------------------ DesktopBannerCTA (mobile) ------------------------ */
+/* small desktop banner (mobile section) */
 function DesktopBannerCTA() {
   const [copied, setCopied] = React.useState(false);
   const href =
@@ -432,7 +421,7 @@ function DesktopBannerCTA() {
   );
 }
 
-/* --------------------------- NotificationsCard (mobile) --------------------------- */
+/* notifications helper (mobile) */
 function NotificationsCard() {
   return (
     <GlowCard color="white" className="mt-2">

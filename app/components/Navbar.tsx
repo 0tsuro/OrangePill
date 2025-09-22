@@ -30,7 +30,7 @@ export default function Navbar({
 
   return (
     <nav className="flex w-full items-center justify-between px-16 py-6">
-      {/* LEFT: logo + nav buttons */}
+      {/* left: logo + nav buttons */}
       <div className="flex items-center gap-4">
         <a href="#" className={`${circle} size-14`} aria-label="Home">
           <Image
@@ -43,7 +43,7 @@ export default function Navbar({
           />
         </a>
 
-        {/* Dashboard — reste orange si wallet connecté ; texte toujours blanc */}
+        {/* dashboard button (stays orange when connected) */}
         <a
           href="#"
           aria-current={connected ? "page" : undefined}
@@ -52,27 +52,16 @@ export default function Navbar({
           Dashboard
         </a>
 
+        {/* about button */}
         <button
           onClick={onOpenAbout}
           className={`${ovalBase} ${ovalIdle} cursor-pointer`}
         >
           What is OrangePill?
         </button>
-
-        <a
-          href="#"
-          target="_blank"
-          rel="noreferrer"
-          className={`${ovalBase} ${ovalIdle}`}
-        >
-          OrdiScan
-          <div className="ml-1">
-            <Image src={"/view.svg"} width={12} height={12} alt="" />
-          </div>
-        </a>
       </div>
 
-      {/* RIGHT: socials + wallet */}
+      {/* right: socials + wallet */}
       <div className="flex items-center gap-2">
         <a href="#" className={`${circle} size-10`} aria-label="Discord">
           <Image src="/discord.svg" width={20} height={20} alt="" />
@@ -84,7 +73,7 @@ export default function Navbar({
           <Image src="/bell.svg" width={20} height={20} alt="" />
         </a>
 
-        {/* Wallet: icône si déconnecté, sinon BOUTON ENTIER cliquable pour disconnect */}
+        {/* wallet: icon when disconnected, full button to disconnect when connected */}
         {connected ? (
           <button
             type="button"

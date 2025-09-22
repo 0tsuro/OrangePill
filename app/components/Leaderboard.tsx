@@ -18,7 +18,7 @@ const formatNumber = (n: number) => nf.format(n);
 
 export default function Leaderboard({
   leaders,
-  pillIconSrc = "/trophy.svg",
+  pillIconSrc = "/trophy.png",
   pillRankSrc = "/orangepill.png",
   activeIndex,
   forceScrollDemo = true,
@@ -32,7 +32,7 @@ export default function Leaderboard({
     if (typeof activeIndex === "number") setCurrent(activeIndex);
   }, [activeIndex]);
 
-  // ---- match RankCard width and padding in 24" windowed (1440x800/900)
+  // simple: sync padding with RankCard on 24" windowed
   const [padClass, setPadClass] = React.useState("p-5");
   React.useEffect(() => {
     const sync = () => {
@@ -68,19 +68,19 @@ export default function Leaderboard({
         padClass,
       ].join(" ")}
     >
-      {/* Header */}
+      {/* simple: header */}
       <div className="mb-3 flex items-center gap-2.5">
         <Image
           src={pillIconSrc}
           alt="Leaderboard Icon"
-          width={32}
-          height={32}
+          width={56}
+          height={56}
           priority
         />
         <h2 className="text-xl font-semibold">Leaderboard</h2>
       </div>
 
-      {/* Scrollable list */}
+      {/* simple: scrollable list */}
       <div
         className="scrollwrap max-h-72 overflow-y-scroll pr-5 py-1"
         style={{
@@ -143,7 +143,7 @@ export default function Leaderboard({
         </ul>
       </div>
 
-      {/* CTA */}
+      {/* simple: CTA button */}
       <button
         type="button"
         onClick={onOpen}
@@ -152,7 +152,7 @@ export default function Leaderboard({
         Open Leaderboard
       </button>
 
-      {/* WebKit scrollbar */}
+      {/* simple: custom WebKit scrollbar */}
       <style jsx>{`
         .scrollwrap::-webkit-scrollbar {
           width: 2px;

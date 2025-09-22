@@ -7,7 +7,7 @@ export default function LeaderboardModal({
   open,
   onClose,
   leaders,
-  pillIconSrc = "/trophy.svg",
+  pillIconSrc = "/trophy.png",
   pillRankSrc = "/orangepill.png",
   activeIndex,
 }: {
@@ -20,7 +20,7 @@ export default function LeaderboardModal({
 }) {
   const [query, setQuery] = React.useState("");
 
-  /* Ensure we have enough rows to scroll (fills with clean dummys). */
+  /* make enough rows to scroll */
   const normalized: Leader[] = React.useMemo(() => {
     if ((leaders?.length ?? 0) >= 18) return leaders;
     const base = leaders ?? [];
@@ -50,13 +50,13 @@ export default function LeaderboardModal({
         }
       `}
     >
-      {/* Backdrop */}
+      {/* backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-200"
         onClick={onClose}
       />
 
-      {/* Panel (centré via flex parent) */}
+      {/* panel */}
       <div
         className={`
           relative z-[81] w-[min(860px,92vw)]
@@ -70,7 +70,7 @@ export default function LeaderboardModal({
           }
         `}
       >
-        {/* Header */}
+        {/* header */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image src={pillIconSrc} alt="" width={72} height={72} />
@@ -78,7 +78,7 @@ export default function LeaderboardModal({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Search */}
+            {/* search */}
             <div className="relative w-[280px]">
               <input
                 value={query}
@@ -111,7 +111,7 @@ export default function LeaderboardModal({
           </div>
         </div>
 
-        {/* List */}
+        {/* list */}
         <div
           className="scrollwrap max-h-[58vh] overflow-y-auto pr-2"
           style={{
@@ -160,7 +160,7 @@ export default function LeaderboardModal({
                     {shortAddr(l.addr)}
                   </div>
 
-                  {/* score + pill */}
+                  {/* score and pill */}
                   <div className="flex items-center justify-end gap-2">
                     <span className="text-[13px] font-semibold text-white/95">
                       {nf.format(l.score)}
@@ -173,7 +173,7 @@ export default function LeaderboardModal({
           </ul>
         </div>
 
-        {/* WebKit scrollbar */}
+        {/* scrollbar (WebKit) */}
         <style jsx>{`
           .scrollwrap::-webkit-scrollbar {
             width: 4px;

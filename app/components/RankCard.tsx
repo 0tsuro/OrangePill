@@ -14,9 +14,9 @@ export default function RankCard({
   myRank?: number;
   connected: boolean;
 }) {
-  // --- Réduction du gap au-dessus (windowed 24" & écrans "plats") ---
+  // simple: compact top spacing on some screens
   const [compactTop, setCompactTop] = React.useState(false);
-  const [padClass, setPadClass] = React.useState("p-5"); // par défaut
+  const [padClass, setPadClass] = React.useState("p-5");
 
   React.useEffect(() => {
     const update = () => {
@@ -24,11 +24,10 @@ export default function RankCard({
       const h = window.innerHeight;
       const isWindowed24 = w === 1440 && (h === 800 || h === 900);
 
-      // même largeur visuelle que Leaderboard en 24" windowed :
-      // on aligne le padding sur celui du Leaderboard: "p-4 pb-5"
+      // simple: sync padding with Leaderboard
       setPadClass(isWindowed24 ? "p-4 pb-5" : "p-5");
 
-      // compact si 24" windowed OU écrans plats <=900px de haut
+      // simple: compact if 24" windowed or flat screens
       const compact =
         isWindowed24 || (w >= 1280 && w <= 1600 && h <= 900) || h <= 820;
       setCompactTop(compact);
@@ -46,6 +45,7 @@ export default function RankCard({
       ].join(" ")}
       style={{ marginTop: compactTop ? "-8px" : undefined }}
     >
+      {/* header */}
       <div className="mb-2 flex items-center gap-2">
         <svg
           viewBox="0 0 24 24"
@@ -63,12 +63,13 @@ export default function RankCard({
       </div>
 
       {connected ? (
+        // show rank when connected
         <p className="text-6xl font-extrabold leading-none tracking-tight text-white">
           {ordinal(myRank).toUpperCase()}
         </p>
       ) : (
         <>
-          {/* Placeholder visuel du rang masqué */}
+          {/* placeholder when not connected */}
           <div className="h-12 w-40 rounded-lg bg-white/5 ring-1 ring-white/10" />
           <p className="mt-3 text-sm text-zinc-400">
             Connect your wallet in the bottle to view your rank.
